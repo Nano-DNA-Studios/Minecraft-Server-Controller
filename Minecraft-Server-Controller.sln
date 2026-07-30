@@ -5,6 +5,19 @@ VisualStudioVersion = 17.14.36811.4 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minecraft-Server-Controller", "Minecraft-Server-Controller\Minecraft-Server-Controller.csproj", "{E39696EF-1D28-4AD8-93B3-11347A23987C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+		Dockerfile = Dockerfile
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{279B8EF2-CECF-4C29-A81C-AA06CC29D7BD}"
+	ProjectSection(SolutionItems) = preProject
+		build-run.sh = build-run.sh
+		build.sh = build.sh
+		run.sh = run.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

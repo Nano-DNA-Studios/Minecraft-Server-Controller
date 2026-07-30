@@ -8,4 +8,14 @@
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NanoDNA.ProcessRunner" Version="0.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="rcon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

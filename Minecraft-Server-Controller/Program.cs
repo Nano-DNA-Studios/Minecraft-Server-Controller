@@ -4,19 +4,37 @@ namespace Minecraft_Server_Controller
 {
     public class Program
     {
+        private static int HTTPPort = 80;
+        private static int HTTPSPort = 443;
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            if (!OperatingSystem.IsWindows())
+            {
+                builder.WebHost.ConfigureKestrel(options =>
+                {
+                    options.ListenAnyIP(HTTPPort); // HTTP
+                    //options.ListenAnyIP(HTTPSPort, listenOptions =>
+                    //{
+                    //    listenOptions.UseHttps(certPath, certPassword);
+                    //});
+                });
+            }
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-
+            builder.Services.AddSingleton<DailyService>();
             builder.Services.AddSingleton<HeartbeatService>();
 
             builder.Services.AddHostedService(serviceProvider =>
                 serviceProvider.GetRequiredService<HeartbeatService>());
+
+            builder.Services.AddHostedService(serviceProvider =>
+                serviceProvider.GetRequiredService<DailyService>());
 
             var app = builder.Build();
 

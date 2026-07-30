@@ -51,7 +51,15 @@ namespace Minecraft_Server_Controller
             {
                 Console.WriteLine("Ping!");
 
-                LatestPingResult = await PingServer();
+                try
+                {
+                    LatestPingResult = await PingServer();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Something went wrong with ping! {e.Message}");
+                }
+                
 
                 OnPingResult?.Invoke();
 
@@ -65,11 +73,11 @@ namespace Minecraft_Server_Controller
 
             TcpClient client = new();
 
-            await client.ConnectAsync("localhost", 25565);
+            await client.ConnectAsync("server", 25565);
 
             using NetworkStream stream = client.GetStream();
 
-            await SendHandshakeAsync(stream, "localhost", 25565, token);
+            await SendHandshakeAsync(stream, "server", 25565, token);
             await SendStatusRequestAsync(stream, token);
 
             string json = await ReadStatusResponseAsync(stream, token);
