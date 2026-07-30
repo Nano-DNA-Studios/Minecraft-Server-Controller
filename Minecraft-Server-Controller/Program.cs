@@ -12,6 +12,12 @@ namespace Minecraft_Server_Controller
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
+
+            builder.Services.AddSingleton<HeartbeatService>();
+
+            builder.Services.AddHostedService(serviceProvider =>
+                serviceProvider.GetRequiredService<HeartbeatService>());
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
