@@ -7,40 +7,19 @@ using System.Text.Json;
 
 namespace Minecraft_Server_Controller
 {
-
-    public class MinecraftPingResult
-    {
-        public bool Online;
-        public string? Version;
-        public int OnlinePlayers;
-        public int MaxPlayers;
-        public string? Motd;
-        public TimeSpan Latency;
-        public string? Error = null;
-    }
-
-
     public class HeartbeatService : BackgroundService
     {
         public CancellationTokenSource CancellationTokenSource { get; set; }
 
-        public MinecraftPingResult LatestPingResult { get; set; }
+        private ServerStatus _Status { get; set; }
 
         public event Action? OnPingResult;
 
-        public HeartbeatService()
+        public HeartbeatService(ServerStatus status)
         {
             CancellationTokenSource = new CancellationTokenSource();
 
-            LatestPingResult = new MinecraftPingResult()
-            {
-                Online = false,
-                Version = "unknown",
-                OnlinePlayers = 0,
-                MaxPlayers = 0,
-                Motd = "unknown",
-                Latency = TimeSpan.Zero
-            };
+            _Status = status;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -53,13 +32,14 @@ namespace Minecraft_Server_Controller
 
                 try
                 {
-                    LatestPingResult = await PingServer();
+                   await PingServer();
+
+                    _Status.Update();
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Something went wrong with ping! {e.Message}");
                 }
-                
 
                 OnPingResult?.Invoke();
 
@@ -67,7 +47,7 @@ namespace Minecraft_Server_Controller
             }
         }
 
-        private async Task<MinecraftPingResult> PingServer()
+        private async Task PingServer()
         {
             CancellationToken token = CancellationTokenSource.Token;
 
@@ -99,43 +79,31 @@ namespace Minecraft_Server_Controller
             int maxPlayers = 0;
             string? motd = null;
 
-            Console.WriteLine(root.ToString());
-
             if (root.TryGetProperty("version", out JsonElement versionElement))
             {
                 if (versionElement.TryGetProperty("name", out JsonElement nameElement))
-                {
                     version = nameElement.GetString();
-                }
             }
 
+            //Console.WriteLine(root.ToString());
             if (root.TryGetProperty("players", out JsonElement playersElement))
             {
                 if (playersElement.TryGetProperty("online", out JsonElement onlineElement))
-                {
                     onlinePlayers = onlineElement.GetInt32();
-                }
 
                 if (playersElement.TryGetProperty("max", out JsonElement maxElement))
-                {
                     maxPlayers = maxElement.GetInt32();
-                }
             }
 
             if (root.TryGetProperty("description", out JsonElement descriptionElement))
-            {
                 motd = ReadDescription(descriptionElement);
-            }
 
-            return new MinecraftPingResult()
-            {
-                Online = true,
-                Version = version,
-                OnlinePlayers = onlinePlayers,
-                MaxPlayers = maxPlayers,
-                Motd = motd,
-                Latency = stopwatch.Elapsed
-            };
+            _Status.Online = true;
+            _Status.Version = version;
+            _Status.OnlinePlayers = onlinePlayers;
+            _Status.MaxPlayers = maxPlayers;
+            _Status.Motd = motd;
+            _Status.Latency = stopwatch.Elapsed;
         }
 
         private static async Task SendStatusRequestAsync(

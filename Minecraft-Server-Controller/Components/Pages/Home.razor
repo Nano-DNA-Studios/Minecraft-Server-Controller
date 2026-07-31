@@ -1,19 +1,19 @@
 ﻿@page "/"
 @rendermode InteractiveServer
-@inject HeartbeatService Service
+@inject ServerStatus Status
 
 <PageTitle>Home</PageTitle>
 
 <h1>Server Controller</h1>
 
-<h2>Server Online : @Service.LatestPingResult.Online</h2>
-<h2>Players Online : @Service.LatestPingResult.OnlinePlayers</h2>
+<h2>Server Online : @Status.Online</h2>
+<h2>Players Online : @Status.OnlinePlayers</h2>
 
 @code{
 
 	protected override void OnInitialized()
 	{
-		Service.OnPingResult += Ping;
+		Status.OnUpdated += Ping;
 	}
 
 	private void Ping()
