@@ -27,14 +27,22 @@ namespace Minecraft_Server_Controller
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
+            ServerStatus status = new ServerStatus();
+            HeartbeatService heartbeat = new HeartbeatService(status);
+            HourlyService hourly = new HourlyService(status);
+
+            builder.Services.AddSingleton<ServerStatus>(status);
             builder.Services.AddSingleton<DailyService>();
-            builder.Services.AddSingleton<HeartbeatService>();
+            builder.Services.AddSingleton<HeartbeatService>(heartbeat);
+            builder.Services.AddSingleton(hourly);
 
             builder.Services.AddHostedService(serviceProvider =>
                 serviceProvider.GetRequiredService<HeartbeatService>());
 
-            builder.Services.AddHostedService(serviceProvider =>
-                serviceProvider.GetRequiredService<DailyService>());
+            //builder.Services.AddHostedService(serviceProvider =>
+            //    serviceProvider.GetRequiredService<DailyService>());
+
+            builder.Services.AddHostedService<HourlyService>(serviceProvider => hourly);
 
             var app = builder.Build();
 
