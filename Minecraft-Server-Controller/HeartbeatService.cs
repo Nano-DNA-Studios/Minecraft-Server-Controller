@@ -28,8 +28,6 @@ namespace Minecraft_Server_Controller
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                Console.WriteLine("Ping!");
-
                 try
                 {
                    await PingServer();
@@ -43,7 +41,7 @@ namespace Minecraft_Server_Controller
 
                 OnPingResult?.Invoke();
 
-                Thread.Sleep(5000);
+                await Task.Delay(5000);
             }
         }
 

@@ -30,11 +30,6 @@ namespace Minecraft_Server_Controller
 
                     await _CommandRunner.RunAsync("""tellraw @a {"text":"Saving...", "color":"gold"}""");
                     await _CommandRunner.RunAsync("save-all");
-
-                    await Task.Delay(5000);
-
-                    await _CommandRunner.RunAsync("""tellraw @a {"text":"Rendering Map...", "color":"red"}""");
-                    await _CommandRunner.RunAsync("dynmap fullrender world");
                 }
                 catch (Exception ex)
                 {
@@ -51,7 +46,7 @@ namespace Minecraft_Server_Controller
                 now.Month,
                 now.Day,
                 now.Hour,
-                now.Minute, // Set thius to 0 and 
+                now.Minute, // Set this to 0 and change to AddHour(1);
                 0,
                 now.Kind).AddMinutes(5);
 

@@ -48,7 +48,7 @@ namespace Minecraft_Server_Controller
                     Console.WriteLine($"Something went wrong : {e.Message}");
                 }
 
-                await Task.Delay(30000);
+                await Task.Delay(3000000);
             }
         }
     }
