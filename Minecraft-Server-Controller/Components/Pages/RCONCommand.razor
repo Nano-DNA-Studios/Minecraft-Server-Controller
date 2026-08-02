@@ -1,0 +1,34 @@
+﻿@page "/rcon"
+@rendermode InteractiveServer
+
+<div class="message-card">
+
+	<div class="message-header">
+		<h3>Run Command</h3>
+		<p>Run a Server Command using RCON</p>
+	</div>
+
+	<div class="message-body">
+
+		<input class="message-input"
+				  @bind="CommandStr"
+				  placeholder="Enter your Command...">
+        </input>
+
+		<button class="send-button" @onclick="SendCommand">
+			Run Command
+		</button>
+
+	</div>
+</div>
+
+@code {
+	RCONCommandRunner Runner = new RCONCommandRunner("server", 25575);
+
+	string CommandStr = string.Empty;
+
+	private void SendCommand()
+	{
+		Runner.Run($"{CommandStr}");
+	}
+}
