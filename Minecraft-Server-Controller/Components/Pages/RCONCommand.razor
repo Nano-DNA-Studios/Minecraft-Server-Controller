@@ -63,9 +63,9 @@
 		CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [EXECUTE] : {CommandStr}");
 
 		foreach (string line in Runner.OutputLogs)
-			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [LOGS] : {CommandStr}");
+			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [LOGS] : {line}");
 
 		foreach (string line in Runner.ErrorLogs)
-			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [ERROR] : {CommandStr}");
+			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [ERROR] : {line}");
 	}
 }
