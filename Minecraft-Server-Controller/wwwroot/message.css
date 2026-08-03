@@ -87,3 +87,34 @@
     .send-button:active {
         transform: translateY(0);
     }
+
+.log-card {
+    margin-top: 20px;
+}
+
+.log-body {
+    padding: 24px;
+    background: #0b1220;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.log-line {
+    font-family: Consolas, monospace;
+    font-size: 0.95rem;
+    color: #d1d5db;
+    background: #111827;
+    border: 1px solid #2b3648;
+    border-radius: 8px;
+    padding: 10px 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.log-empty {
+    color: #9ca3af;
+    font-style: italic;
+}

@@ -11,14 +11,36 @@
 	<div class="message-body">
 
 		<input class="message-input"
-				  @bind="CommandStr"
-				  placeholder="Enter your Command...">
-        </input>
+			   @bind="CommandStr"
+			   placeholder="Enter your Command...">
+		</input>
 
 		<button class="send-button" @onclick="SendCommand">
 			Run Command
 		</button>
 
+	</div>
+
+</div>
+
+<div class="message-card log-card">
+	<div class="message-header">
+		<h3>Command Logs</h3>
+		<p>Recent RCON output</p>
+	</div>
+
+	<div class="log-body">
+		@if (CommandLogs.Count == 0)
+		{
+			<div class="log-empty">No logs yet.</div>
+		}
+		else
+		{
+			@foreach (var log in CommandLogs)
+			{
+				<div class="log-line">@log</div>
+			}
+		}
 	</div>
 </div>
 
@@ -27,8 +49,23 @@
 
 	string CommandStr = string.Empty;
 
+	List<string> CommandLogs = new List<string>();
+
 	private void SendCommand()
 	{
+		if (string.IsNullOrWhiteSpace(CommandStr))
+			return;
+
+		DateTime now = DateTime.Now;
+
 		Runner.Run($"{CommandStr}");
+
+		CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [EXECUTE] : {CommandStr}");
+
+		foreach (string line in Runner.OutputLogs)
+			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [LOGS] : {CommandStr}");
+
+		foreach (string line in Runner.ErrorLogs)
+			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [ERROR] : {CommandStr}");
 	}
 }
