@@ -44,7 +44,9 @@
 
 	private async Task SendMessage()
 	{
+		if (string.IsNullOrWhiteSpace(MessageStr))
+			return;
+
 		await Manager.Broadcast(MessageStr, SelectedColor);
-		//Runner.Run($"tellraw @a {{\"text\":\"{MessageStr}\",\"color\":\"{SelectedColor}\"}}");
 	}
 }

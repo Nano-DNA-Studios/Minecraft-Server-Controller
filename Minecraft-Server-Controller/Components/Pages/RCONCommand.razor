@@ -1,5 +1,6 @@
 ﻿@page "/rcon"
 @rendermode InteractiveServer
+@inject ServerManager Manager
 
 <div class="message-card">
 
@@ -51,21 +52,11 @@
 
 	List<string> CommandLogs = new List<string>();
 
-	private void SendCommand()
+	private async Task SendCommand()
 	{
 		if (string.IsNullOrWhiteSpace(CommandStr))
 			return;
 
-		DateTime now = DateTime.Now;
-
-		Runner.Run($"{CommandStr}");
-
-		CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [EXECUTE] : {CommandStr}");
-
-		foreach (string line in Runner.OutputLogs)
-			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [LOGS] : {line}");
-
-		foreach (string line in Runner.ErrorLogs)
-			CommandLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [ERROR] : {line}");
+		await Manager.RunCommand(CommandStr);
 	}
 }
