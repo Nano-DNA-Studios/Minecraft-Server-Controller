@@ -231,7 +231,7 @@
 
 	private async Task Backup()
 	{
-		Manager.AddLog(LogLevel.Error, "Backup action has not been implemented yet.");
+		await Manager.Backup();
 		await InvokeAsync(StateHasChanged);
 	}
 

@@ -62,11 +62,15 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Force Saving, Server May Freeze Momentarily ...", BroadcastColor.Gold);
 
+            await Task.Delay(1000);
+
             AddLog(LogLevel.Log, "Force Saving Server...");
 
             await RunCommand("save-all flush");
 
             AddLog(LogLevel.Log, "Finished Force Saving Server");
+
+            await Task.Delay(1000);
 
             await Broadcast("Server Saved!", BroadcastColor.Gold);
         }
@@ -83,9 +87,13 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Stopping Server...", BroadcastColor.Red);
 
+            await Task.Delay(1000);
+
             AddLog(LogLevel.Log, "Stopping Server...");
 
             await ForceSave();
+
+            await Task.Delay(1000);
 
             await RunCommand("stop");
 
@@ -130,11 +138,49 @@ namespace Minecraft_Server_Controller
 
             await Stop();
 
-            await Task.Delay(2000);
+            await Task.Delay(5000);
 
             await Start();
 
             AddLog(LogLevel.Log, "Server Restarted!");
+        }
+
+        public async Task Backup()
+        {
+            AddLog(LogLevel.Log, "Backing Up Server...");
+
+            if (Status.Online)
+            {
+                await Broadcast("Backing Up Server...", BroadcastColor.Red);
+
+                await Task.Delay(1000);
+
+                await Stop();
+            }
+            
+            await Task.Delay(1000);
+
+            AddLog(LogLevel.Log, "Compressing Server State...");
+
+            DateTime now = DateTime.Now;
+
+            ProcessRunner runner = new ProcessRunner("7z");
+
+            AddLog(LogLevel.Execute, $"7z a -mx=9 /backup/Backup-{now:yyyy-MM-dd-HH-mm-ss}.7z /data/");
+
+            await runner.RunAsync($"a -mx=9 /backup/Backup-{now:yyyy-MM-dd-HH-mm-ss}.7z /data/");
+
+            await Task.Delay(1000);
+
+            AddLog(LogLevel.Log, "Server Compressed. Ready to Start Server");
+
+            string[] files = Directory.GetFiles("/backup");
+
+            if (files.Length > 3)
+            {
+                File.Delete(files[0]);
+                AddLog(LogLevel.Log, $"Removed Extra Backup : {files[0]}");
+            } 
         }
         
         public async Task Broadcast(string message, BroadcastColor color)
