@@ -52,8 +52,6 @@ namespace Minecraft_Server_Controller
 
             TimeSpan delay = nextHour - now;
 
-            Console.WriteLine($"Delay is in {delay.TotalSeconds.ToString()} seconds");
-
             return delay;
         }
     }
