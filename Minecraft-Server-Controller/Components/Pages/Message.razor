@@ -1,5 +1,6 @@
 ﻿@page "/message"
 @rendermode InteractiveServer
+@inject ServerManager Manager
 
 <div class="message-card">
 
@@ -18,9 +19,9 @@
 		<select class="message-select" @bind="SelectedColor">
 			<option value="">White (Default)</option>
 
-			@foreach (string color in Colors)
+			@foreach (BroadcastColor color in Colors)
 			{
-				<option value="@color.ToLower()">@color</option>
+				<option value="@color">@color.ToString()</option>
 			}
 		</select>
 
@@ -37,12 +38,13 @@
 
 	string MessageStr = string.Empty;
 
-	string SelectedColor = string.Empty;
+	BroadcastColor SelectedColor = BroadcastColor.Gold;
 
-	string[] Colors = ["Red", "Gold", "Blue", "Green"];
+	BroadcastColor[] Colors = [BroadcastColor.Red, BroadcastColor.Gold, BroadcastColor.Blue, BroadcastColor.Green];
 
-	private void SendMessage()
+	private async Task SendMessage()
 	{
-		Runner.Run($"tellraw @a {{\"text\":\"{MessageStr}\",\"color\":\"{SelectedColor}\"}}");
+		await Manager.Broadcast(MessageStr, SelectedColor);
+		//Runner.Run($"tellraw @a {{\"text\":\"{MessageStr}\",\"color\":\"{SelectedColor}\"}}");
 	}
 }

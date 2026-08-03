@@ -3,38 +3,30 @@ namespace Minecraft_Server_Controller
 {
     public class HourlyService : BackgroundService
     {
-        private ServerStatus _Status { get; set; }
+        private ServerManager _Manager { get; set; }
 
-        private RCONCommandRunner _CommandRunner { get; set; }
-
-        public HourlyService(ServerStatus status)
+        public HourlyService(ServerManager serverManager)
         {
-            _Status = status;
-            _CommandRunner = new RCONCommandRunner("server", 25575);
+            _Manager = serverManager;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                if (!_Manager.Status.Online)
+                {
+                    await Task.Delay(10000);
+                    continue;
+                }
+
                 await Task.Delay(GetDelay());
 
-                try
-                {
-                    if (!_Status.Online)
-                        continue;
+                await _Manager.Broadcast("Saving Server in 5 seconds!", BroadcastColor.Red);
 
-                    await _CommandRunner.RunAsync("""tellraw @a {"text":"Saving Server in 5 seconds!", "color":"red"}""");
+                await Task.Delay(5000);
 
-                    await Task.Delay(5000);
-
-                    await _CommandRunner.RunAsync("""tellraw @a {"text":"Saving...", "color":"gold"}""");
-                    await _CommandRunner.RunAsync("save-all");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Something went wrong : {ex.Message}");
-                }
+                await _Manager.Save();
             }
         }
 

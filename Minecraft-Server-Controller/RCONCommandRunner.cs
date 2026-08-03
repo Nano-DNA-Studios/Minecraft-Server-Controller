@@ -49,7 +49,12 @@ namespace Minecraft_Server_Controller
         {
             string fullCommand = BuildRCONArgument(command);
 
-            return await Runner.RunAsync(fullCommand);
+            Result<int> result = await Runner.RunAsync(fullCommand);
+
+            OutputLogs = Runner.STDOutput;
+            ErrorLogs = Runner.STDError;
+
+            return result;
         }
     }
 }

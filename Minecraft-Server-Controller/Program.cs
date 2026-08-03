@@ -29,10 +29,12 @@ namespace Minecraft_Server_Controller
 
             ServerStatus status = new ServerStatus();
             HeartbeatService heartbeat = new HeartbeatService(status);
-            HourlyService hourly = new HourlyService(status);
+            ServerManager manager = new ServerManager(status);
+            HourlyService hourly = new HourlyService(manager);
 
             builder.Services.AddSingleton<ServerStatus>(status);
             builder.Services.AddSingleton<DailyService>();
+            builder.Services.AddSingleton<ServerManager>(manager);
             builder.Services.AddSingleton<HeartbeatService>(heartbeat);
             builder.Services.AddSingleton(hourly);
 
