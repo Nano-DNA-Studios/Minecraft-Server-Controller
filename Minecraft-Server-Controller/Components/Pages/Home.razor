@@ -1,23 +1,243 @@
 ﻿@page "/"
 @rendermode InteractiveServer
+@inject ServerManager Manager
 @inject ServerStatus Status
+@implements IDisposable
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Server Controller</PageTitle>
 
-<h1>Server Controller</h1>
+<div class="dashboard-shell">
 
-<h2>Server Online : @Status.Online</h2>
-<h2>Players Online : @Status.OnlinePlayers</h2>
+	<div class="message-card stats-card">
+		<div class="message-header stats-header">
+			<div>
+				<h3>Server Stats</h3>
+				<p>Current server health, player count, and connection information.</p>
+			</div>
 
-@code{
+			<span class="status-badge @(Status.Online ? "status-online" : "status-offline")">
+				@(Status.Online ? "Online" : "Offline")
+			</span>
+		</div>
+
+		<div class="stats-grid">
+			<div class="stat-tile">
+				<span class="stat-label">Players</span>
+				<span class="stat-value">@Status.OnlinePlayers / @Status.MaxPlayers</span>
+			</div>
+
+			<div class="stat-tile">
+				<span class="stat-label">Version</span>
+				<span class="stat-value">@(string.IsNullOrWhiteSpace(Status.Version) ? "Unknown" : Status.Version)</span>
+			</div>
+
+			<div class="stat-tile">
+				<span class="stat-label">Latency</span>
+				<span class="stat-value">@Status.Latency.TotalMilliseconds.ToString("0") ms</span>
+			</div>
+
+			<div class="stat-tile">
+				<span class="stat-label">Server Name</span>
+				<span class="stat-value stat-value-small">@(string.IsNullOrWhiteSpace(Status.Motd) ? "Unavailable" : Status.Motd)</span>
+			</div>
+
+			<div class="stat-tile">
+				<span class="stat-label">Server Map</span>
+				<a class="send-button action-button action-save"
+				   href="http://localhost:8123/"
+				   target="_blank"
+				   rel="noopener noreferrer">
+					Map
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="message-card">
+		<div class="message-header">
+			<h3>Server Management</h3>
+			<p>Server lifecycle controls and save operations.</p>
+		</div>
+
+		<div class="message-body">
+			<div class="management-grid">
+				<button class="send-button action-button action-start" @onclick="Start">Start</button>
+				<button class="send-button action-button action-stop" @onclick="Stop">Stop</button>
+				<button class="send-button action-button action-restart" @onclick="Restart">Restart</button>
+				<button class="send-button action-button action-save" @onclick="Save">Save</button>
+				<button class="send-button action-button action-force-save" @onclick="ForceSave">Force Save</button>
+				<button class="send-button action-button action-backup" @onclick="Backup">Backup</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="message-card">
+		<div class="message-header">
+			<h3>Server Actions</h3>
+			<p>Send a player broadcast and run an RCON command from the same panel.</p>
+		</div>
+
+		<div class="message-body">
+			<div class="tools-grid">
+
+				<div class="tool-panel">
+					<div class="tool-header">
+						<h4>Broadcast Message</h4>
+						<p>Send a message to every player currently online.</p>
+					</div>
+
+					<textarea class="message-input"
+							  @bind="MessageStr"
+							  placeholder="Enter your message...">
+					</textarea>
+
+					<select class="message-select" @bind="SelectedColor">
+						@foreach (BroadcastColor color in Colors)
+						{
+							<option value="@color">@color.ToString()</option>
+						}
+					</select>
+
+					<button class="send-button tool-button" @onclick="SendMessage">
+						Send Message
+					</button>
+				</div>
+
+				<div class="tool-panel">
+					<div class="tool-header">
+						<h4>Run Command</h4>
+						<p>Run a server command using RCON.</p>
+					</div>
+
+					<input class="message-input command-input"
+						   @bind="CommandStr"
+						   placeholder="Enter your command..." />
+
+					<div class="tool-spacer"></div>
+
+					<button class="send-button tool-button" @onclick="SendCommand">
+						Run Command
+					</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="message-card log-card">
+		<div class="message-header">
+			<h3>Server Logs</h3>
+			<p>Latest server activity and command output.</p>
+		</div>
+
+		<div class="log-body dashboard-log-body">
+			@if (Manager.ServerLogs.Count == 0)
+			{
+				<div class="log-empty">No logs yet.</div>
+			}
+			else
+			{
+				@foreach (string log in Manager.ServerLogs)
+				{
+					<div class="log-line">@log</div>
+				}
+			}
+		</div>
+	</div>
+
+</div>
+
+@code {
+
+	private string MessageStr = string.Empty;
+	private string CommandStr = string.Empty;
+
+	private BroadcastColor SelectedColor = BroadcastColor.Gold;
+
+	private BroadcastColor[] Colors =
+	[
+		BroadcastColor.Gold,
+		BroadcastColor.Red,
+		BroadcastColor.Blue,
+		BroadcastColor.Green
+	];
+
+	private System.Threading.Timer? RefreshTimer;
 
 	protected override void OnInitialized()
 	{
 		Status.OnUpdated += Ping;
+
+		RefreshTimer = new System.Threading.Timer(async _ =>
+		{
+			await InvokeAsync(StateHasChanged);
+		}, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
 	}
 
 	private void Ping()
 	{
 		InvokeAsync(StateHasChanged);
+	}
+
+	private async Task SendMessage()
+	{
+		if (string.IsNullOrWhiteSpace(MessageStr))
+			return;
+
+		await Manager.Broadcast(MessageStr, SelectedColor);
+		MessageStr = string.Empty;
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task SendCommand()
+	{
+		if (string.IsNullOrWhiteSpace(CommandStr))
+			return;
+
+		await Manager.RunCommand(CommandStr);
+		CommandStr = string.Empty;
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Save()
+	{
+		await Manager.Save();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task ForceSave()
+	{
+		await Manager.ForceSave();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Start()
+	{
+		await Manager.Start();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Stop()
+	{
+		await Manager.Stop();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Restart()
+	{
+		await Manager.Restart();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Backup()
+	{
+		Manager.AddLog(LogLevel.Error, "Backup action has not been implemented yet.");
+		await InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		Status.OnUpdated -= Ping;
+		RefreshTimer?.Dispose();
 	}
 }
