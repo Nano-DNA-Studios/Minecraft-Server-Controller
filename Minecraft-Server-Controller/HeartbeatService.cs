@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Extensions.Hosting;
+﻿using System;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
@@ -37,6 +36,13 @@ namespace Minecraft_Server_Controller
                 catch (Exception e)
                 {
                     Console.WriteLine($"Something went wrong with ping! {e.Message}");
+
+                    _Status.Online = false;
+                    _Status.Version = "unknown";
+                    _Status.OnlinePlayers = 0;
+                    _Status.MaxPlayers = 0;
+                    _Status.Motd = "unknown";
+                    _Status.Latency = TimeSpan.Zero;
                 }
 
                 OnPingResult?.Invoke();

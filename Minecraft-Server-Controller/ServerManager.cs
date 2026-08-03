@@ -1,4 +1,5 @@
-﻿
+﻿using NanoDNA.ProcessRunner;
+
 namespace Minecraft_Server_Controller
 {
     public enum LogLevel
@@ -84,13 +85,58 @@ namespace Minecraft_Server_Controller
 
             AddLog(LogLevel.Log, "Stopping Server...");
 
+            await ForceSave();
+
             await RunCommand("stop");
 
-            AddLog(LogLevel.Log, "Finished Stopping Server...");
+            await WaitForStop();
 
-            //Add mechanism to check if Server is actually stopped, use process calls with Docker?
+            AddLog(LogLevel.Log, "Finished Stopping Server...");
         }
 
+        public async Task Start()
+        {
+            if (Status.Online)
+            {
+                AddLog(LogLevel.Error, "Server Is Already Online, Cannot Start Server");
+                return;
+            }
+
+            AddLog(LogLevel.Log, "Starting Server...");
+
+            ProcessRunner runner = new ProcessRunner("docker");
+
+            await runner.TryRunAsync("start minecraft-server-controller-server-1");
+
+            await WaitForStart();
+
+            while (!Status.Online)
+                await Task.Delay(1000);
+
+            AddLog(LogLevel.Log, "Server Started!");
+        }
+
+        public async Task Restart()
+        {
+            if (!Status.Online)
+            {
+                AddLog(LogLevel.Error, "Server Not Online, Cannot Restart Server");
+                return;
+            }
+
+            await Broadcast("Restarting Server...", BroadcastColor.Red);
+
+            AddLog(LogLevel.Log, "Restarting Server...");
+
+            await Stop();
+
+            await Task.Delay(2000);
+
+            await Start();
+
+            AddLog(LogLevel.Log, "Server Restarted!");
+        }
+        
         public async Task Broadcast(string message, BroadcastColor color)
         {
             if (!Status.Online)
@@ -101,11 +147,9 @@ namespace Minecraft_Server_Controller
 
             RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
 
-            string command = $"tellraw @a {{\"text\":\"{message}\",\"color\":\"{color.ToString().ToLower()}\"}}";
-
             AddLog(LogLevel.Log, "Broadcasting Message...");
 
-            await RunCommand(command);
+            await RunCommand($"tellraw @a {{\"text\":\"{message}\",\"color\":\"{color.ToString().ToLower()}\"}}");
 
             AddLog(LogLevel.Log, "Broadcast Completed");
         }
@@ -156,12 +200,38 @@ namespace Minecraft_Server_Controller
             return logLevel;
         }
 
-        private string GetColorStr(BroadcastColor color)
+        private async Task WaitForStop()
         {
-            return color.ToString().ToLower();
+            ProcessRunner runner = new ProcessRunner("docker");
+
+            string running = "true";
+
+            while (running != "false")
+            {
+                await Task.Delay(1000);
+                
+                bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
+
+                if (result)
+                    running = runner.STDOutput.Last();
+            }
         }
 
+        private async Task WaitForStart()
+        {
+            ProcessRunner runner = new ProcessRunner("docker");
 
+            string running = "false";
 
+            while (running != "true")
+            {
+                await Task.Delay(1000);
+
+                bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
+
+                if (result)
+                    running = runner.STDOutput.Last();
+            }
+        }
     }
 }

@@ -2,6 +2,8 @@ services:
   app:
     build: .
     container_name: minecraft-server-controller
+    environment:
+      - DOCKER_HOST=tcp://host.docker.internal:2375
     ports:
       - 8080:80
 
