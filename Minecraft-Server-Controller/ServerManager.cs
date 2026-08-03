@@ -16,7 +16,6 @@ namespace Minecraft_Server_Controller
         Green
     }
 
-
     public class ServerManager
     {
         public List<string> ServerLogs { get; private set; }
@@ -41,11 +40,9 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Saving...", BroadcastColor.Gold);
 
-            string command = "save-all";
-
             AddLog(LogLevel.Log, "Saving Server...");
 
-            await RunCommand(command);
+            await RunCommand("save-all");
 
             AddLog(LogLevel.Log, "Finished Saving Server");
 
@@ -64,15 +61,34 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Force Saving, Server May Freeze Momentarily ...", BroadcastColor.Gold);
 
-            string command = "save-all flush";
-
             AddLog(LogLevel.Log, "Force Saving Server...");
 
-            await RunCommand(command);
+            await RunCommand("save-all flush");
 
             AddLog(LogLevel.Log, "Finished Force Saving Server");
 
             await Broadcast("Server Saved!", BroadcastColor.Gold);
+        }
+
+        public async Task Stop()
+        {
+            if (!Status.Online)
+            {
+                AddLog(LogLevel.Error, "Server Not Online, Cannot Stop Server");
+                return;
+            }
+
+            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+
+            await Broadcast("Stopping Server...", BroadcastColor.Red);
+
+            AddLog(LogLevel.Log, "Stopping Server...");
+
+            await RunCommand("stop");
+
+            AddLog(LogLevel.Log, "Finished Stopping Server...");
+
+            //Add mechanism to check if Server is actually stopped, use process calls with Docker?
         }
 
         public async Task Broadcast(string message, BroadcastColor color)
@@ -85,7 +101,7 @@ namespace Minecraft_Server_Controller
 
             RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
 
-            string command = $"tellraw @a {{\"text\":\"{message}\",\"color\":\"{color}\"}}";
+            string command = $"tellraw @a {{\"text\":\"{message}\",\"color\":\"{color.ToString().ToLower()}\"}}";
 
             AddLog(LogLevel.Log, "Broadcasting Message...");
 
@@ -98,7 +114,11 @@ namespace Minecraft_Server_Controller
         {
             DateTime now = DateTime.Now;
 
-            ServerLogs.Insert(0, $"[{now:yyyy-MM-dd HH:mm:ss}] [{GetLogLevel(level)}] : {message}");
+            string log = $"[{now:yyyy-MM-dd HH:mm:ss}] [{GetLogLevel(level)}] : {message}";
+
+            Console.WriteLine(log);
+
+            ServerLogs.Insert(0, log);
         }
 
         public async Task RunCommand(string command)
