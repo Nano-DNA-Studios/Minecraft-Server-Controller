@@ -3,6 +3,7 @@ FROM ubuntu:24.04
 ARG BUILD_CONFIG="Release"
 ENV USERNAME=MSC
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/Toronto
 
 WORKDIR /Server-Controller
 
@@ -12,7 +13,9 @@ RUN apt-get update \
         curl \
         libicu74 \
         lsb-release \
+        p7zip \
         gnupg \
+        tzdata \
     && install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc \
     && chmod a+r /etc/apt/keyrings/docker.asc \
@@ -27,7 +30,7 @@ COPY ./Minecraft-Server-Controller/rcon /usr/bin/rcon
 
 COPY ./Minecraft-Server-Controller/bin/${BUILD_CONFIG}/net8.0/linux-x64/publish/ .
 
-RUN chown -R ${USERNAME}:${USERNAME} /Server-Controller
+RUN mkdir /data /backup && chown -R ${USERNAME}:${USERNAME} /Server-Controller /data /backup
 
 # Drop privileges to non-root account
 USER MSC

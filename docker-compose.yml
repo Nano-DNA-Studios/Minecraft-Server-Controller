@@ -6,6 +6,9 @@ services:
       - DOCKER_HOST=tcp://host.docker.internal:2375
     ports:
       - 8080:80
+    volumes:
+      - mc-data:/data
+      - ./backup:/backup
 
   server:
     image: nano-minecraft-server:26.2
@@ -15,3 +18,7 @@ services:
     ports:
       - 25565:25565
       - 8123:8123
+    volumes:
+      - mc-data:/data
+volumes:
+  mc-data:
