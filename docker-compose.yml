@@ -1,5 +1,6 @@
 services:
   app:
+    #user: "0:0"
     build: .
     container_name: minecraft-server-controller
     environment:
@@ -7,7 +8,11 @@ services:
     ports:
       - 8080:80
     volumes:
-      - mc-data:/data
+      - type: volume
+        source: mc-data
+        target: /data
+        volume:
+          nocopy: true
       - ./backup:/backup
 
   server:
