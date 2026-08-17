@@ -1,4 +1,7 @@
 ﻿using NanoDNA.ProcessRunner;
+using SharpCompress.Archives;
+using SharpCompress.Archives.SevenZip;
+using SharpCompress.Common;
 
 namespace Minecraft_Server_Controller
 {
@@ -22,6 +25,10 @@ namespace Minecraft_Server_Controller
         public List<string> ServerLogs { get; private set; }
 
         public ServerStatus Status { get; private set; }
+
+        public const string BACKUP_DIR = "/backup";
+
+        public const string DATA_DIR = "/data";
 
         public ServerManager(ServerStatus status)
         {
@@ -157,32 +164,32 @@ namespace Minecraft_Server_Controller
 
                 await Stop();
             }
-            
+
             await Task.Delay(1000);
 
             AddLog(LogLevel.Log, "Compressing Server State...");
 
             DateTime now = DateTime.Now;
 
-            ProcessRunner runner = new ProcessRunner("7z");
+            string backupPath = $"/backup/Backup-{now:yyyy-MM-dd-HH-mm-ss}.7z";
+            string command = $"cd /data && exec 7z a -mx=9 {backupPath} .";
 
-            AddLog(LogLevel.Execute, $"7z a -mx=9 /backup/Backup-{now:yyyy-MM-dd-HH-mm-ss}.7z /data/");
+            CommandRunner runner = new CommandRunner(application: NanoDNA.ProcessRunner.Enums.ProcessApplication.Sh);
 
-            await runner.RunAsync($"a -mx=9 /backup/Backup-{now:yyyy-MM-dd-HH-mm-ss}.7z /data/");
+            AddLog(LogLevel.Execute, command);
+
+            await runner.RunAsync(command);
 
             await Task.Delay(1000);
 
             AddLog(LogLevel.Log, "Server Compressed. Ready to Start Server");
 
-            string[] files = Directory.GetFiles("/backup");
+            string[] files = GetBackupFiles();
 
             if (files.Length > 3)
-            {
-                File.Delete(files[0]);
-                AddLog(LogLevel.Log, $"Removed Extra Backup : {files[0]}");
-            } 
+                DeleteBackup(files[0]);
         }
-        
+
         public async Task Broadcast(string message, BroadcastColor color)
         {
             if (!Status.Online)
@@ -255,7 +262,7 @@ namespace Minecraft_Server_Controller
             while (running != "false")
             {
                 await Task.Delay(1000);
-                
+
                 bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
 
                 if (result)
@@ -278,6 +285,66 @@ namespace Minecraft_Server_Controller
                 if (result)
                     running = runner.STDOutput.Last();
             }
+        }
+
+        public string[] GetBackupFiles()
+        {
+            if (!Directory.Exists(BACKUP_DIR))
+                return new string[0];
+
+            return Directory.GetFiles(BACKUP_DIR);
+        }
+
+        public void DeleteBackup(string path)
+        {
+            if (!File.Exists(path))
+                return;
+
+            File.Delete(path);
+
+            AddLog(LogLevel.Log, $"Deleted backup : {path}");
+        }
+
+        public void LoadBackup(string path)
+        {
+            AddLog(LogLevel.Log, $"Loading backup : {path}");
+
+            AddLog(LogLevel.Log, $"Deleting current data...");
+
+            foreach (string entry in Directory.GetFileSystemEntries(DATA_DIR))
+            {
+                if (Directory.Exists(entry))
+                    Directory.Delete(entry, true);
+                else
+                    File.Delete(entry);
+            }
+
+            Directory.CreateDirectory(DATA_DIR);
+
+            AddLog(LogLevel.Log, $"Finished Deleting Data!");
+
+            AddLog(LogLevel.Log, $"Extracting Backup file...");
+
+            ProcessRunner runner = new ProcessRunner("7z");
+
+            runner.Run($"x {path} -o\"/data\" -y");
+
+            //using (IArchive archive = ArchiveFactory.OpenArchive(path))
+            //{
+            //    foreach (IArchiveEntry entry in archive.Entries)
+            //    {
+            //        if (entry.IsDirectory)
+            //            continue;
+            //        Console.WriteLine($"Extracting : ");
+            //        entry.WriteToDirectory("/", new ExtractionOptions()
+            //        {
+            //            ExtractFullPath = true,
+            //            Overwrite = true
+            //        });
+            //    }
+            //}
+
+            AddLog(LogLevel.Log, $"Finished Extracting Backup!");
         }
     }
 }

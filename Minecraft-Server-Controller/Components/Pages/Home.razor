@@ -71,6 +71,29 @@
 		</div>
 	</div>
 
+	<div class="message-card stats-card">
+		<div class="message-header stats-header">
+			<div>
+				<h3>Load Backup</h3>
+				<p>Load a backup world into the server</p>
+			</div>
+		</div>
+
+		<div class="backup-grid">
+			@foreach(string file in Manager.GetBackupFiles())
+			{
+				<div class="stat-tile">
+					<span class="stat-label">@Path.GetFileNameWithoutExtension(file)</span>
+
+					<div class="d-flex flex-row" style="gap:10px">
+						<button class="send-button action-button action-start" @onclick="() => LoadBackup(file)">Load</button>
+						<button class="send-button action-button action-stop" @onclick="() => DeleteBackup(file)">Delete</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
 	<div class="message-card">
 		<div class="message-header">
 			<h3>Server Actions</h3>
@@ -239,5 +262,21 @@
 	{
 		Status.OnUpdated -= Ping;
 		RefreshTimer?.Dispose();
+	}
+
+	public async Task DeleteBackup(string file)
+	{
+		Manager.DeleteBackup(file);
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	public async Task LoadBackup (string path)
+	{
+		await Stop();
+
+		Manager.LoadBackup(path);
+
+		await Start();
 	}
 }

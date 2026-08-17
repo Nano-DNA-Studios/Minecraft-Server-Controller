@@ -1,5 +1,5 @@
 ﻿.message-card {
-    max-width: 95%;
+    max-width: 100%;
     margin: 40px auto;
     background: #111827;
     border: 1px solid #2b3648;
@@ -120,11 +120,11 @@
 }
 
 .dashboard-shell {
-    max-width: 95%;
-    margin: auto auto;
+    max-width: 100%;
+    margin: 20px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 20px;
 }
 
     .stats-card,
@@ -336,4 +336,12 @@ a.send-button {
     align-items: center;
     justify-content: center;
     text-decoration: none;
+}
+
+.backup-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    padding: 24px;
+    background: #0f172a;
 }
