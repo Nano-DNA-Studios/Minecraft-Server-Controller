@@ -22,7 +22,7 @@
 
         public ServerSettings()
         {
-            RCONHost = "server";
+            RCONHost = string.Empty;
             RCONPort = 25575;
             RCONPassword = string.Empty;
             ServerName = string.Empty;
@@ -35,55 +35,45 @@
             LoadEnv();
         }
 
+        private bool LoadInt(string varName, out int value)
+        {
+            string? strVal = Environment.GetEnvironmentVariable(varName);
+
+            if (string.IsNullOrEmpty(strVal))
+            {
+                value = 0;
+                return false;
+            }
+
+            if (!int.TryParse(strVal, out int intVal))
+            {
+                value = 0;
+                return false;
+            }
+
+            value = intVal;
+            return true;
+        }
+
         private void LoadEnv()
         {
-            string? rconPort = Environment.GetEnvironmentVariable("RCONPort");
+            if (LoadInt("RCONPort", out int port))
+                RCONPort = port;
 
-            if (!string.IsNullOrEmpty(rconPort))
-            {
-                if (int.TryParse(rconPort, out int port))
-                    RCONPort = port;
-            }
+            if (LoadInt("Delay", out int delay))
+                Delay = delay;
 
-            string? delay = Environment.GetEnvironmentVariable("Delay");
+            if (LoadInt("NumOfBackups", out int backups))
+                NumOfBackups = backups;
 
-            if (!string.IsNullOrEmpty(delay))
-            {
-                if (int.TryParse(delay, out int delayInt))
-                    Delay = delayInt;
-            }
+            if (LoadInt("MapPort", out int mapPort))
+                MapPort = mapPort;
 
-            string? numOfBackups = Environment.GetEnvironmentVariable("NumOfBackups");
+            if (LoadInt("ServerPort", out int serverPort))
+                ServerPort = serverPort;
 
-            if (!string.IsNullOrEmpty(numOfBackups))
-            {
-                if (int.TryParse(numOfBackups, out int backups))
-                   NumOfBackups = backups;
-            }
-
-            string? mapPort = Environment.GetEnvironmentVariable("MapPort");
-
-            if (!string.IsNullOrEmpty(mapPort))
-            {
-                if (int.TryParse(mapPort, out int mapPortInt))
-                    MapPort = mapPortInt;
-            }
-
-            string? serverPort = Environment.GetEnvironmentVariable("ServerPort");
-
-            if (!string.IsNullOrEmpty(serverPort))
-            {
-                if (int.TryParse(serverPort, out int serverPortInt))
-                    ServerPort = serverPortInt;
-            }
-
-            string? controllerPort = Environment.GetEnvironmentVariable("ControllerPort");
-
-            if (!string.IsNullOrEmpty(controllerPort))
-            {
-                if (int.TryParse(controllerPort, out int controllerPortInt))
-                    ControllerPort = controllerPortInt;
-            }
+            if (LoadInt("ControllerPort", out int controllerPort))
+                ControllerPort = controllerPort;
 
             string? rconPassword = Environment.GetEnvironmentVariable("RCONPassword");
 
