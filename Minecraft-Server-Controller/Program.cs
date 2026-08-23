@@ -9,6 +9,8 @@ namespace Minecraft_Server_Controller
 
         public static void Main(string[] args)
         {
+            LoadEnv();
+
             var builder = WebApplication.CreateBuilder(args);
 
             if (!OperatingSystem.IsWindows())
@@ -27,12 +29,14 @@ namespace Minecraft_Server_Controller
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
+            ServerSettings settings = new ServerSettings();
             ServerStatus status = new ServerStatus();
             HeartbeatService heartbeat = new HeartbeatService(status);
-            ServerManager manager = new ServerManager(status);
-            HourlyService hourly = new HourlyService(manager);
-            DailyService daily = new DailyService(manager);
+            ServerManager manager = new ServerManager(status, settings);
+            HourlyService hourly = new HourlyService(manager, settings);
+            DailyService daily = new DailyService(manager, settings);
 
+            builder.Services.AddSingleton<ServerSettings>(settings);
             builder.Services.AddSingleton<ServerStatus>(status);
             builder.Services.AddSingleton<DailyService>(daily);
             builder.Services.AddSingleton<ServerManager>(manager);
@@ -62,6 +66,30 @@ namespace Minecraft_Server_Controller
                 .AddInteractiveServerRenderMode();
 
             app.Run();
+        }
+
+        private static void LoadEnv()
+        {
+            string envPath = ".env";
+
+            if (!Path.Exists(envPath))
+                return;
+
+            foreach (string line in File.ReadLines(envPath))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+                    continue;
+
+                string[] parts = line.Split('=');
+
+                if (parts.Length != 2)
+                    continue;
+
+                var key = parts[0];
+                var value = parts[1];
+
+                Environment.SetEnvironmentVariable(key, value);
+            }
         }
     }
 }

@@ -5,45 +5,12 @@ namespace Minecraft_Server_Controller
     {
         protected ServerManager _Manager { get; set; }
 
-        public TimeService(ServerManager manager)
+        protected ServerSettings Settings { get; set; }
+
+        public TimeService(ServerManager manager, ServerSettings settings)
         {
             _Manager = manager;
-        }
-
-        protected TimeSpan GetDelay(bool hourly)
-        {
-            DateTime now = DateTime.Now;
-            DateTime target;
-
-            if (hourly)
-            {
-                target = new DateTime(
-                    now.Year,
-                    now.Month,
-                    now.Day,
-                    now.Hour,
-                    0,
-                    0,
-                    now.Kind
-                ).AddHours(1);
-            }
-            else
-            {
-                target = new DateTime(
-                     now.Year,
-                     now.Month,
-                     now.Day,
-                     23,
-                     55,
-                     0,
-                     now.Kind
-                 );
-
-                if (target <= now)
-                    target = target.AddDays(1);
-            }
-
-            return target - now;
+            Settings = settings;
         }
 
         //protected TimeSpan GetDelay(bool hourly)
@@ -58,10 +25,10 @@ namespace Minecraft_Server_Controller
         //            now.Month,
         //            now.Day,
         //            now.Hour,
-        //            now.Minute,
+        //            0,
         //            0,
         //            now.Kind
-        //        ).AddMinutes(1);
+        //        ).AddHours(1);
         //    }
         //    else
         //    {
@@ -69,17 +36,53 @@ namespace Minecraft_Server_Controller
         //             now.Year,
         //             now.Month,
         //             now.Day,
-        //             now.Hour,
-        //             now.Minute,
+        //             23,
+        //             55,
         //             0,
         //             now.Kind
-        //         ).AddMinutes(5);
+        //         );
 
-        //        //if (target <= now)
-        //        //    target = target.AddDays(1);
+        //        if (target <= now)
+        //            target = target.AddDays(1);
         //    }
 
         //    return target - now;
         //}
+
+        protected TimeSpan GetDelay(bool hourly)
+        {
+            DateTime now = DateTime.Now;
+            DateTime target;
+
+            if (hourly)
+            {
+                target = new DateTime(
+                    now.Year,
+                    now.Month,
+                    now.Day,
+                    now.Hour,
+                    now.Minute,
+                    0,
+                    now.Kind
+                ).AddMinutes(1);
+            }
+            else
+            {
+                target = new DateTime(
+                     now.Year,
+                     now.Month,
+                     now.Day,
+                     now.Hour,
+                     now.Minute,
+                     0,
+                     now.Kind
+                 ).AddMinutes(5);
+
+                //if (target <= now)
+                //    target = target.AddDays(1);
+            }
+
+            return target - now;
+        }
     }
 }

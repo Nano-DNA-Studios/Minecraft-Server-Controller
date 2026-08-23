@@ -3,7 +3,7 @@ namespace Minecraft_Server_Controller
 {
     public class DailyService : TimeService
     {
-        public DailyService(ServerManager manager) : base(manager) { }
+        public DailyService(ServerManager manager, ServerSettings settings) : base(manager, settings) { }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -19,11 +19,11 @@ namespace Minecraft_Server_Controller
 
                 await _Manager.Broadcast("Restarting Server for Backup...", BroadcastColor.Red);
 
-                await Task.Delay(5000);
+                await Task.Delay(Settings.Delay);
 
                 await _Manager.Backup();
 
-                await Task.Delay(5000);
+                await Task.Delay(Settings.Delay);
 
                 await _Manager.Start();
             }

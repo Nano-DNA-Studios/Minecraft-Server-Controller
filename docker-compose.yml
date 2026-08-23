@@ -3,10 +3,12 @@ services:
     #user: "0:0"
     build: .
     container_name: minecraft-server-controller
+    env_file:
+        - .env
     environment:
       - DOCKER_HOST=tcp://host.docker.internal:2375
     ports:
-      - 8080:80
+      - ${ControllerPort}:80
     volumes:
       - type: volume
         source: mc-data
@@ -17,12 +19,14 @@ services:
 
   server:
     image: nano-minecraft-server:26.2
+    env_file:
+        - .env
     environment:
       - MEMORY_MIN=2G
-      - MEMORY_MAX=10G
+      - MEMORY_MAX=12G
     ports:
-      - 25565:25565
-      - 8123:8123
+      - ${ServerPort}:25565
+      - ${MapPort}:8123
     volumes:
       - mc-data:/data
 volumes:

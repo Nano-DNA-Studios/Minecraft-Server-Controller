@@ -3,7 +3,7 @@ namespace Minecraft_Server_Controller
 {
     public class HourlyService : TimeService
     {
-        public HourlyService(ServerManager serverManager) : base(serverManager) { } 
+        public HourlyService(ServerManager manager, ServerSettings settings) : base(manager, settings) { } 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -17,9 +17,9 @@ namespace Minecraft_Server_Controller
 
                 await Task.Delay(GetDelay(true));
 
-                await _Manager.Broadcast("Saving Server in 5 seconds!", BroadcastColor.Red);
+                await _Manager.Broadcast("Saving Server in 3 seconds!", BroadcastColor.Red);
 
-                await Task.Delay(5000);
+                await Task.Delay(Settings.Delay);
 
                 await _Manager.Save();
             }

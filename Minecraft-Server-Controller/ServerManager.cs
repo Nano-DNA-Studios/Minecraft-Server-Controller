@@ -23,13 +23,16 @@ namespace Minecraft_Server_Controller
 
         public ServerStatus Status { get; private set; }
 
+        public ServerSettings Settings { get; private set; }
+
         public const string BACKUP_DIR = "/backup";
 
         public const string DATA_DIR = "/data";
 
-        public ServerManager(ServerStatus status)
+        public ServerManager(ServerStatus status, ServerSettings settings)
         {
             Status = status;
+            Settings = settings;
             ServerLogs = new List<string>();
         }
 
@@ -41,7 +44,7 @@ namespace Minecraft_Server_Controller
                 return;
             }
 
-            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+            RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
             await Broadcast("Saving...", BroadcastColor.Gold);
 
@@ -62,11 +65,11 @@ namespace Minecraft_Server_Controller
                 return;
             }
 
-            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+            RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
             await Broadcast("Force Saving, Server May Freeze Momentarily ...", BroadcastColor.Gold);
 
-            await Task.Delay(1000);
+            await Task.Delay(Settings.Delay);
 
             AddLog(LogLevel.Log, "Force Saving Server...");
 
@@ -74,7 +77,7 @@ namespace Minecraft_Server_Controller
 
             AddLog(LogLevel.Log, "Finished Force Saving Server");
 
-            await Task.Delay(1000);
+            await Task.Delay(Settings.Delay);
 
             await Broadcast("Server Saved!", BroadcastColor.Gold);
         }
@@ -89,15 +92,15 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Stopping Server...", BroadcastColor.Red);
 
-            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+            RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
-            await Task.Delay(1000);
+            await Task.Delay(Settings.Delay);
 
             await ForceSave();
 
             AddLog(LogLevel.Log, "Stopping Server...");
 
-            await Task.Delay(1000);
+            await Task.Delay(Settings.Delay);
 
             await RunCommand("stop");
 
@@ -123,7 +126,7 @@ namespace Minecraft_Server_Controller
             await WaitForStart();
 
             while (!Status.Online)
-                await Task.Delay(1000);
+                await Task.Delay(Settings.Delay);
 
             AddLog(LogLevel.Log, "Server Started!");
         }
@@ -142,7 +145,7 @@ namespace Minecraft_Server_Controller
 
             await Stop();
 
-            await Task.Delay(5000);
+            await Task.Delay(Settings.Delay);
 
             await Start();
 
@@ -157,12 +160,12 @@ namespace Minecraft_Server_Controller
             {
                 await Broadcast("Backing Up Server...", BroadcastColor.Red);
 
-                await Task.Delay(1000);
+                await Task.Delay(Settings.Delay);
 
                 await Stop();
             }
 
-            await Task.Delay(1000);
+            await Task.Delay(Settings.Delay);
 
             AddLog(LogLevel.Log, "Compressing Server State...");
 
@@ -177,13 +180,13 @@ namespace Minecraft_Server_Controller
 
             await runner.RunAsync(command);
 
-            await Task.Delay(1000);
+            await Task.Delay(Settings.Delay);
 
             AddLog(LogLevel.Log, "Server Compressed. Ready to Start Server");
 
             string[] files = GetBackupFiles();
 
-            if (files.Length > 3)
+            if (files.Length > Settings.NumOfBackups)
                 DeleteBackup(files[0]);
         }
 
@@ -195,7 +198,7 @@ namespace Minecraft_Server_Controller
                 return;
             }
 
-            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+            RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
             AddLog(LogLevel.Log, "Broadcasting Message...");
 
@@ -223,7 +226,7 @@ namespace Minecraft_Server_Controller
                 return;
             }
 
-            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+            RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
             AddLog(LogLevel.Execute, command);
 
@@ -258,7 +261,7 @@ namespace Minecraft_Server_Controller
 
             while (running != "false")
             {
-                await Task.Delay(1000);
+                await Task.Delay(Settings.Delay);
 
                 bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
 
@@ -275,7 +278,7 @@ namespace Minecraft_Server_Controller
 
             while (running != "true")
             {
-                await Task.Delay(1000);
+                await Task.Delay(Settings.Delay);
 
                 bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
 
@@ -325,21 +328,6 @@ namespace Minecraft_Server_Controller
             ProcessRunner runner = new ProcessRunner("7z");
 
             runner.Run($"x {path} -o\"/data\" -y");
-
-            //using (IArchive archive = ArchiveFactory.OpenArchive(path))
-            //{
-            //    foreach (IArchiveEntry entry in archive.Entries)
-            //    {
-            //        if (entry.IsDirectory)
-            //            continue;
-            //        Console.WriteLine($"Extracting : ");
-            //        entry.WriteToDirectory("/", new ExtractionOptions()
-            //        {
-            //            ExtractFullPath = true,
-            //            Overwrite = true
-            //        });
-            //    }
-            //}
 
             AddLog(LogLevel.Log, $"Finished Extracting Backup!");
         }

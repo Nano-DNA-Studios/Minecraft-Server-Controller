@@ -11,16 +11,19 @@ namespace Minecraft_Server_Controller
 
         public int Port { get; private set; }
 
+        private string _Password { get; set; }
+
         public string[] OutputLogs { get; set; }
 
         public string[] ErrorLogs { get; set; }
 
-        public RCONCommandRunner(string host, int port)
+        public RCONCommandRunner(string host, int port, string password)
         {
             Runner = new ProcessRunner("rcon");
 
             Host = host;
             Port = port;
+            _Password = password;
 
             OutputLogs = new string[0];
             ErrorLogs = new string[0];
@@ -30,7 +33,7 @@ namespace Minecraft_Server_Controller
         {
             string escapedCommand = arg.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
-            return $"--a server:25575 --p ***REMOVED*** \"{escapedCommand}\"";
+            return $"--a server:{Port} --p {_Password} \"{escapedCommand}\"";
         }
 
         public Result<int> Run(string command)
