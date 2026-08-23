@@ -31,7 +31,7 @@ namespace Minecraft_Server_Controller
 
             ServerSettings settings = new ServerSettings();
             ServerStatus status = new ServerStatus();
-            HeartbeatService heartbeat = new HeartbeatService(status);
+            HeartbeatService heartbeat = new HeartbeatService(status, settings);
             ServerManager manager = new ServerManager(status, settings);
             HourlyService hourly = new HourlyService(manager, settings);
             DailyService daily = new DailyService(manager, settings);
