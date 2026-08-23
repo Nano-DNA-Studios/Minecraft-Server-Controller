@@ -47,6 +47,11 @@ namespace Minecraft_Server_Controller
             builder.Services.AddHostedService<HourlyService>(serviceProvider => hourly);
             builder.Services.AddHostedService<DailyService>(serviceProvider => daily);
 
+            builder.Services.AddHttpClient("Map", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(2);
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

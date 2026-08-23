@@ -20,6 +20,10 @@
 
         public int ControllerPort { get; private set; }
 
+        public string MapHealthUrl { get; private set; }
+
+        public string MapBrowserUrl { get; private set; }
+
         public ServerSettings()
         {
             RCONHost = string.Empty;
@@ -31,6 +35,8 @@
             MapPort = 8123;
             ServerPort = 25565;
             ControllerPort = 8080;
+            MapBrowserUrl = string.Empty;
+            MapHealthUrl = string.Empty;
 
             LoadEnv();
         }
@@ -89,6 +95,16 @@
 
             if (!string.IsNullOrEmpty(name))
                 ServerName = name;
+
+            string? mapHealth = Environment.GetEnvironmentVariable("MapHealthUrl");
+
+            if (!string.IsNullOrEmpty(mapHealth))
+                MapHealthUrl = mapHealth;
+
+            string? mapBrowser = Environment.GetEnvironmentVariable("MapBrowserUrl");
+
+            if (!string.IsNullOrEmpty(mapBrowser))
+                MapBrowserUrl = mapBrowser;
         }
     }
 }

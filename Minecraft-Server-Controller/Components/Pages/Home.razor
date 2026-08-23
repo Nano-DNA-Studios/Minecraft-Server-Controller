@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 @inject ServerManager Manager
 @inject ServerStatus Status
+@inject ServerSettings Settings
+@inject IHttpClientFactory HttpClientFactory
 @implements IDisposable
 
 <PageTitle>Server Controller</PageTitle>
@@ -21,34 +23,56 @@
 		</div>
 
 		<div class="stats-grid">
-			<div class="stat-tile">
-				<span class="stat-label">Players</span>
-				<span class="stat-value">@Status.OnlinePlayers / @Status.MaxPlayers</span>
+			<div class="stat-tile players-tile">
+				<div class="stat-heading">
+					<span class="stat-label">Players</span>
+					<span class="stat-value">
+						@Status.OnlinePlayers / @Status.MaxPlayers
+					</span>
+				</div>
+
+				@if (Status.Players != null)
+				{
+					<div class="log-body dashboard-log-body">
+						@foreach (Player player in Status.Players)
+						{
+							<div class="log-line">@player.Name (@player.ID)</div>
+						}
+					</div>
+				}
 			</div>
 
-			<div class="stat-tile">
-				<span class="stat-label">Version</span>
-				<span class="stat-value">@(string.IsNullOrWhiteSpace(Status.Version) ? "Unknown" : Status.Version)</span>
-			</div>
+			<div class="server-details-grid">
+				<div class="stat-tile">
+					<span class="stat-label">Server Name</span>
+					<span class="stat-value stat-value-small">
+						@(string.IsNullOrWhiteSpace(Status.Motd) ? "Unavailable" : Status.Motd)
+					</span>
+				</div>
 
-			<div class="stat-tile">
-				<span class="stat-label">Latency</span>
-				<span class="stat-value">@Status.Latency.TotalMilliseconds.ToString("0") ms</span>
-			</div>
+				<div class="stat-tile">
+					<span class="stat-label">Version</span>
+					<span class="stat-value">
+						@(string.IsNullOrWhiteSpace(Status.Version) ? "Unknown" : Status.Version)
+					</span>
+				</div>
 
-			<div class="stat-tile">
-				<span class="stat-label">Server Name</span>
-				<span class="stat-value stat-value-small">@(string.IsNullOrWhiteSpace(Status.Motd) ? "Unavailable" : Status.Motd)</span>
-			</div>
+				<div class="stat-tile">
+					<span class="stat-label">Latency</span>
+					<span class="stat-value">
+						@Status.Latency.TotalMilliseconds.ToString("0") ms
+					</span>
+				</div>
 
-			<div class="stat-tile">
-				<span class="stat-label">Server Map</span>
-				<a class="send-button action-button action-save"
-				   href="http://localhost:8123/"
-				   target="_blank"
-				   rel="noopener noreferrer">
-					Map
-				</a>
+				<div class="stat-tile">
+					<span class="stat-label">Server Map</span>
+					<a class="send-button action-button action-save"
+					   href="@Settings.MapBrowserUrl"
+					   target="_blank"
+					   rel="noopener noreferrer">
+						Map
+					</a>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -80,7 +104,7 @@
 		</div>
 
 		<div class="backup-grid">
-			@foreach(string file in Manager.GetBackupFiles())
+			@foreach (string file in Manager.GetBackupFiles())
 			{
 				<div class="stat-tile">
 					<span class="stat-label">@Path.GetFileNameWithoutExtension(file)</span>
@@ -146,6 +170,30 @@
 		</div>
 	</div>
 
+	<div class="message-card">
+		<div class="message-header">
+			<h3>Server Map</h3>
+			<p>Has an IFrame of the Server Map for quick view and access</p>
+		</div>
+
+		<div class="message-body">
+			@if (MapAvailable)
+			{
+				<iframe src="@Settings.MapBrowserUrl"
+						style="width: 100%; height: 95vh; border: none; border-radius:10px">
+				</iframe>
+			}
+			else
+			{
+				<p>The server map is currently unavailable.</p>
+
+				<button class="send-button action-button action-save" onclick="@(() => GetMap());">
+					Try Map Again
+				</button>
+			}
+		</div>
+	</div>
+
 	<div class="message-card log-card">
 		<div class="message-header">
 			<h3>Server Logs</h3>
@@ -174,6 +222,8 @@
 	private string MessageStr = string.Empty;
 	private string CommandStr = string.Empty;
 
+	private bool MapAvailable = false;
+
 	private BroadcastColor SelectedColor = BroadcastColor.Gold;
 
 	private BroadcastColor[] Colors =
@@ -198,7 +248,17 @@
 
 	private void Ping()
 	{
+		GetMap();
 		InvokeAsync(StateHasChanged);
+	}
+
+	private void GetMap()
+	{
+		HttpClient client = HttpClientFactory.CreateClient("Map");
+
+		HttpResponseMessage message = client.GetAsync(Settings.MapHealthUrl, HttpCompletionOption.ResponseHeadersRead).Result;
+
+		MapAvailable = message.IsSuccessStatusCode;
 	}
 
 	private async Task SendMessage()
@@ -270,7 +330,7 @@
 		await InvokeAsync(StateHasChanged);
 	}
 
-	public async Task LoadBackup (string path)
+	public async Task LoadBackup(string path)
 	{
 		await Stop();
 

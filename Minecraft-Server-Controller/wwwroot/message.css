@@ -166,12 +166,53 @@
     border-color: rgba(239, 68, 68, 0.35);
 }
 
-.stats-grid {
+/*.stats-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
     padding: 24px;
     background: #0f172a;
+}*/
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px;
+    padding: 24px;
+    background: #0f172a;
+}
+
+.server-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.players-tile {
+    min-height: 100%;
+}
+
+.stat-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.dashboard-log-body {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+@media (max-width: 800px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 500px) {
+    .server-details-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .stat-tile {
