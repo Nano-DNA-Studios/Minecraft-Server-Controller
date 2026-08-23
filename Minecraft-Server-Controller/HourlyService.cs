@@ -1,14 +1,9 @@
 ﻿
 namespace Minecraft_Server_Controller
 {
-    public class HourlyService : BackgroundService
+    public class HourlyService : TimeService
     {
-        private ServerManager _Manager { get; set; }
-
-        public HourlyService(ServerManager serverManager)
-        {
-            _Manager = serverManager;
-        }
+        public HourlyService(ServerManager serverManager) : base(serverManager) { } 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -20,7 +15,7 @@ namespace Minecraft_Server_Controller
                     continue;
                 }
 
-                await Task.Delay(GetDelay());
+                await Task.Delay(GetDelay(true));
 
                 await _Manager.Broadcast("Saving Server in 5 seconds!", BroadcastColor.Red);
 
@@ -28,23 +23,6 @@ namespace Minecraft_Server_Controller
 
                 await _Manager.Save();
             }
-        }
-
-        private TimeSpan GetDelay()
-        {
-            DateTime now = DateTime.Now;
-            DateTime nextHour = new DateTime(
-                now.Year,
-                now.Month,
-                now.Day,
-                now.Hour,
-                now.Minute, // Set this to 0 and change to AddHour(1);
-                0,
-                now.Kind).AddMinutes(5);
-
-            TimeSpan delay = nextHour - now;
-
-            return delay;
         }
     }
 }
