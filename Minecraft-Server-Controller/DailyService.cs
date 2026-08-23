@@ -15,13 +15,9 @@ namespace Minecraft_Server_Controller
                     continue;
                 }
 
-                await Task.Delay(GetDelay(true));
+                await Task.Delay(GetDelay(false));
 
                 await _Manager.Broadcast("Restarting Server for Backup...", BroadcastColor.Red);
-
-                await Task.Delay(5000);
-
-                await _Manager.Stop();
 
                 await Task.Delay(5000);
 

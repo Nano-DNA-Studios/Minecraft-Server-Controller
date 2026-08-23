@@ -31,20 +31,17 @@ namespace Minecraft_Server_Controller
             HeartbeatService heartbeat = new HeartbeatService(status);
             ServerManager manager = new ServerManager(status);
             HourlyService hourly = new HourlyService(manager);
+            DailyService daily = new DailyService(manager);
 
             builder.Services.AddSingleton<ServerStatus>(status);
-            builder.Services.AddSingleton<DailyService>();
+            builder.Services.AddSingleton<DailyService>(daily);
             builder.Services.AddSingleton<ServerManager>(manager);
             builder.Services.AddSingleton<HeartbeatService>(heartbeat);
             builder.Services.AddSingleton(hourly);
 
-            builder.Services.AddHostedService(serviceProvider =>
-                serviceProvider.GetRequiredService<HeartbeatService>());
-
-            //builder.Services.AddHostedService(serviceProvider =>
-            //    serviceProvider.GetRequiredService<DailyService>());
-
+            builder.Services.AddHostedService<HeartbeatService>(serviceProvider => heartbeat);
             builder.Services.AddHostedService<HourlyService>(serviceProvider => hourly);
+            builder.Services.AddHostedService<DailyService>(serviceProvider => daily);
 
             var app = builder.Build();
 

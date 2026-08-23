@@ -87,13 +87,13 @@ namespace Minecraft_Server_Controller
                 return;
             }
 
-            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
+            await Broadcast("Stopping Server...", BroadcastColor.Red);
 
-            await ForceSave();
+            RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
 
             await Task.Delay(1000);
 
-            await Broadcast("Stopping Server...", BroadcastColor.Red);
+            await ForceSave();
 
             AddLog(LogLevel.Log, "Stopping Server...");
 

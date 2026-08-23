@@ -45,5 +45,41 @@ namespace Minecraft_Server_Controller
 
             return target - now;
         }
+
+        //protected TimeSpan GetDelay(bool hourly)
+        //{
+        //    DateTime now = DateTime.Now;
+        //    DateTime target;
+
+        //    if (hourly)
+        //    {
+        //        target = new DateTime(
+        //            now.Year,
+        //            now.Month,
+        //            now.Day,
+        //            now.Hour,
+        //            now.Minute,
+        //            0,
+        //            now.Kind
+        //        ).AddMinutes(1);
+        //    }
+        //    else
+        //    {
+        //        target = new DateTime(
+        //             now.Year,
+        //             now.Month,
+        //             now.Day,
+        //             now.Hour,
+        //             now.Minute,
+        //             0,
+        //             now.Kind
+        //         ).AddMinutes(5);
+
+        //        //if (target <= now)
+        //        //    target = target.AddDays(1);
+        //    }
+
+        //    return target - now;
+        //}
     }
 }
