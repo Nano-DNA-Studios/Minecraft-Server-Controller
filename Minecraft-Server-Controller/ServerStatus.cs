@@ -1,5 +1,4 @@
-﻿using System.Data;
-
+﻿
 namespace Minecraft_Server_Controller
 {
     public class ServerStatus
@@ -13,7 +12,6 @@ namespace Minecraft_Server_Controller
         public string? Error = null;
 
         public event Action? OnUpdated;
-
 
         public void Update()
         {

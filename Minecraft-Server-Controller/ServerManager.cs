@@ -1,7 +1,4 @@
 ﻿using NanoDNA.ProcessRunner;
-using SharpCompress.Archives;
-using SharpCompress.Archives.SevenZip;
-using SharpCompress.Common;
 
 namespace Minecraft_Server_Controller
 {
@@ -92,13 +89,13 @@ namespace Minecraft_Server_Controller
 
             RCONCommandRunner runner = new RCONCommandRunner("server", 25575);
 
-            await Broadcast("Stopping Server...", BroadcastColor.Red);
+            await ForceSave();
 
             await Task.Delay(1000);
 
-            AddLog(LogLevel.Log, "Stopping Server...");
+            await Broadcast("Stopping Server...", BroadcastColor.Red);
 
-            await ForceSave();
+            AddLog(LogLevel.Log, "Stopping Server...");
 
             await Task.Delay(1000);
 
