@@ -52,6 +52,9 @@ namespace Minecraft_Server_Controller
                 client.Timeout = TimeSpan.FromSeconds(2);
             });
 
+            builder.Logging.AddFilter("System.Net.Http.HttpClient.Map.LogicalHandler", Microsoft.Extensions.Logging.LogLevel.None);
+            builder.Logging.AddFilter("System.Net.Http.HttpClient.Map.ClientHandler", Microsoft.Extensions.Logging.LogLevel.None);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
