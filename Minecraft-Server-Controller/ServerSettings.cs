@@ -24,6 +24,8 @@
 
         public string MapBrowserUrl { get; private set; }
 
+        public string ServerContainerName { get; private set; }
+
         public ServerSettings()
         {
             RCONHost = string.Empty;
@@ -37,6 +39,7 @@
             ControllerPort = 8080;
             MapBrowserUrl = string.Empty;
             MapHealthUrl = string.Empty;
+            ServerContainerName = string.Empty;
 
             LoadEnv();
         }
@@ -105,6 +108,11 @@
 
             if (!string.IsNullOrEmpty(mapBrowser))
                 MapBrowserUrl = mapBrowser;
+
+            string? containerName = Environment.GetEnvironmentVariable("ServerContainerName");
+
+            if (!string.IsNullOrEmpty(containerName))
+                ServerContainerName = containerName;
         }
     }
 }
