@@ -1,7 +1,11 @@
-﻿namespace Minecraft_Server_Controller
+﻿using NLog;
+
+namespace Minecraft_Server_Controller
 {
     public class ServerSettings
     {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public string RCONHost { get; private set; }
 
         public int RCONPort { get; private set; }
@@ -61,6 +65,22 @@
             }
 
             value = intVal;
+            _logger.Debug($"Loaded Variable from Environment : {varName}={value}");
+            return true;
+        }
+
+        private bool LoadStr(string varName, out string value)
+        {
+            string? strVal = Environment.GetEnvironmentVariable(varName);
+
+            if (string.IsNullOrEmpty(strVal))
+            {
+                value = string.Empty;
+                return false;
+            }
+
+            value = strVal;
+            _logger.Debug($"Loaded Variable from Environment : {varName}={value}");
             return true;
         }
 
@@ -84,35 +104,23 @@
             if (LoadInt("ControllerPort", out int controllerPort))
                 ControllerPort = controllerPort;
 
-            string? rconPassword = Environment.GetEnvironmentVariable("RCONPassword");
+            if (LoadStr("RCONPassword", out string rconPass))
+                RCONPassword = rconPass;
 
-            if (!string.IsNullOrEmpty(rconPassword))
-                RCONPassword = rconPassword;
-
-            string? rconHost = Environment.GetEnvironmentVariable("RCONHost");
-
-            if (!string.IsNullOrEmpty(rconHost))
+            if (LoadStr("RCONHost", out string rconHost))
                 RCONHost = rconHost;
 
-            string? name = Environment.GetEnvironmentVariable("ServerName");
+            if (LoadStr("ServerName", out string serverName))
+                ServerName = serverName;
 
-            if (!string.IsNullOrEmpty(name))
-                ServerName = name;
-
-            string? mapHealth = Environment.GetEnvironmentVariable("MapHealthUrl");
-
-            if (!string.IsNullOrEmpty(mapHealth))
+            if (LoadStr("MapHealthUrl", out string mapHealth))
                 MapHealthUrl = mapHealth;
 
-            string? mapBrowser = Environment.GetEnvironmentVariable("MapBrowserUrl");
-
-            if (!string.IsNullOrEmpty(mapBrowser))
+            if (LoadStr("MapBrowserUrl", out string mapBrowser))
                 MapBrowserUrl = mapBrowser;
 
-            string? containerName = Environment.GetEnvironmentVariable("ServerContainerName");
-
-            if (!string.IsNullOrEmpty(containerName))
-                ServerContainerName = containerName;
+            if (LoadStr("ServerContainerName", out string serverContainerName))
+                ServerContainerName = serverContainerName;
         }
     }
 }

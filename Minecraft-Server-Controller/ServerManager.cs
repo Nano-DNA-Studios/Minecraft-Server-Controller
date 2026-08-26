@@ -1,14 +1,9 @@
-﻿using NanoDNA.ProcessRunner;
+﻿using NLog;
+using NLog.Targets;
+using NanoDNA.ProcessRunner;
 
 namespace Minecraft_Server_Controller
 {
-    public enum LogLevel
-    {
-        Log,
-        Error,
-        Execute
-    }
-
     public enum BroadcastColor
     {
         Gold,
@@ -19,28 +14,36 @@ namespace Minecraft_Server_Controller
 
     public class ServerManager
     {
-        public List<string> ServerLogs { get; private set; }
+        public const string BACKUP_DIR = "/backup";
+
+        public const string DATA_DIR = "/data";
+
+        public IEnumerable<string> ServerLogs
+        {
+            get
+            {
+                var target = LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget");
+                return target?.Logs.Reverse() ?? Enumerable.Empty<string>();
+            }
+        }
 
         public ServerStatus Status { get; private set; }
 
         public ServerSettings Settings { get; private set; }
 
-        public const string BACKUP_DIR = "/backup";
-
-        public const string DATA_DIR = "/data";
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public ServerManager(ServerStatus status, ServerSettings settings)
         {
             Status = status;
             Settings = settings;
-            ServerLogs = new List<string>();
         }
 
         public async Task Save()
         {
             if (!Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Not Online, Cannot Save");
+                _logger.Error("Server Not Online, Cannot Save");
                 return;
             }
 
@@ -48,11 +51,11 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Saving...", BroadcastColor.Gold);
 
-            AddLog(LogLevel.Log, "Saving Server...");
+            _logger.Info("Saving Server...");
 
             await RunCommand("save-all");
 
-            AddLog(LogLevel.Log, "Finished Saving Server");
+            _logger.Info("Finished Saving Server");
 
             await Broadcast("Server Saved!", BroadcastColor.Gold);
         }
@@ -61,7 +64,7 @@ namespace Minecraft_Server_Controller
         {
             if (!Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Not Online, Cannot Force Save");
+                _logger.Error("Server Not Online, Cannot Force Save");
                 return;
             }
 
@@ -71,11 +74,11 @@ namespace Minecraft_Server_Controller
 
             await Task.Delay(Settings.Delay);
 
-            AddLog(LogLevel.Log, "Force Saving Server...");
+            _logger.Info("Force Saving Server...");
 
             await RunCommand("save-all flush");
 
-            AddLog(LogLevel.Log, "Finished Force Saving Server");
+            _logger.Info("Finished Force Saving Server");
 
             await Task.Delay(Settings.Delay);
 
@@ -86,7 +89,7 @@ namespace Minecraft_Server_Controller
         {
             if (!Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Not Online, Cannot Stop Server");
+                _logger.Error("Server Not Online, Cannot Stop Server");
                 return;
             }
 
@@ -98,7 +101,7 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Stopping Server...", BroadcastColor.Red);
 
-            AddLog(LogLevel.Log, "Stopping Server...");
+            _logger.Info("Stopping Server...");
 
             await Task.Delay(Settings.Delay);
 
@@ -106,18 +109,18 @@ namespace Minecraft_Server_Controller
 
             await WaitForStop();
 
-            AddLog(LogLevel.Log, "Finished Stopping Server...");
+            _logger.Info("Finished Stopping Server");
         }
 
         public async Task Start()
         {
             if (Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Is Already Online, Cannot Start Server");
+                _logger.Error("Server Is Already Online, Cannot Start Server");
                 return;
             }
 
-            AddLog(LogLevel.Log, "Starting Server...");
+            _logger.Info("Starting Server...");
 
             ProcessRunner runner = new ProcessRunner("docker");
 
@@ -128,20 +131,20 @@ namespace Minecraft_Server_Controller
             while (!Status.Online)
                 await Task.Delay(Settings.Delay);
 
-            AddLog(LogLevel.Log, "Server Started!");
+            _logger.Info("Server Started!");
         }
 
         public async Task Restart()
         {
             if (!Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Not Online, Cannot Restart Server");
+                _logger.Error("Server Not Online, Cannot Restart Server");
                 return;
             }
 
             await Broadcast("Restarting Server...", BroadcastColor.Red);
 
-            AddLog(LogLevel.Log, "Restarting Server...");
+            _logger.Info("Restarting Server...");
 
             await Stop();
 
@@ -149,12 +152,12 @@ namespace Minecraft_Server_Controller
 
             await Start();
 
-            AddLog(LogLevel.Log, "Server Restarted!");
+            _logger.Info("Server Restarted!");
         }
 
         public async Task Backup()
         {
-            AddLog(LogLevel.Log, "Backing Up Server...");
+            _logger.Info("Backing Up Server...");
 
             if (Status.Online)
             {
@@ -165,7 +168,7 @@ namespace Minecraft_Server_Controller
 
             await Task.Delay(Settings.Delay);
 
-            AddLog(LogLevel.Log, "Compressing Server State...");
+            _logger.Info("Compressing Server State...");
 
             DateTime now = DateTime.Now;
 
@@ -174,13 +177,13 @@ namespace Minecraft_Server_Controller
 
             CommandRunner runner = new CommandRunner(application: NanoDNA.ProcessRunner.Enums.ProcessApplication.Sh);
 
-            AddLog(LogLevel.Execute, command);
+            _logger.Debug($"EXECUTE : {command}");
 
             await runner.RunAsync(command);
 
             await Task.Delay(Settings.Delay);
 
-            AddLog(LogLevel.Log, "Server Compressed. Ready to Start Server");
+            _logger.Info("Server Compressed. Ready to Start Server");
 
             string[] files = GetBackupFiles();
 
@@ -192,67 +195,44 @@ namespace Minecraft_Server_Controller
         {
             if (!Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Not Online, Cannot Broadcast Message");
+                _logger.Error("Server Not Online, Cannot Broadcast Message");
                 return;
             }
 
             RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
-            AddLog(LogLevel.Log, "Broadcasting Message...");
+            _logger.Info("Broadcasting Message...");
 
             await RunCommand($"tellraw @a {{\"text\":\"{message}\",\"color\":\"{color.ToString().ToLower()}\"}}");
 
-            AddLog(LogLevel.Log, "Broadcast Completed");
-        }
-
-        public void AddLog(LogLevel level, string message)
-        {
-            DateTime now = DateTime.Now;
-
-            string log = $"[{now:yyyy-MM-dd HH:mm:ss}] [{GetLogLevel(level)}] : {message}";
-
-            Console.WriteLine(log);
-
-            ServerLogs.Insert(0, log);
+            _logger.Info("Broadcast Completed");
         }
 
         public async Task RunCommand(string command)
         {
             if (!Status.Online)
             {
-                AddLog(LogLevel.Error, "Server Not Online, Cannot Save");
+                _logger.Error("Server Not Online, Cannot Save");
                 return;
             }
 
             RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
-            AddLog(LogLevel.Execute, command);
+            _logger.Debug($"EXECUTE : {command}");
 
             await runner.RunAsync(command);
 
             foreach (string line in runner.OutputLogs)
-                AddLog(LogLevel.Log, line);
+                _logger.Info(line);
 
             foreach (string line in runner.ErrorLogs)
-                AddLog(LogLevel.Error, line);
-        }
-
-        private string GetLogLevel(LogLevel level)
-        {
-            string logLevel = string.Empty;
-
-            if (level == LogLevel.Log)
-                logLevel = "LOGS";
-            else if (level == LogLevel.Error)
-                logLevel = "ERROR";
-            else if (level == LogLevel.Execute)
-                logLevel = "EXECUTE";
-
-            return logLevel;
+                _logger.Error(line);
         }
 
         private async Task WaitForStop()
         {
+            _logger.Info("Waiting for Stop...");
+
             ProcessRunner runner = new ProcessRunner("docker");
 
             string running = "true";
@@ -265,11 +245,15 @@ namespace Minecraft_Server_Controller
 
                 if (result)
                     running = runner.STDOutput.Last();
+
+                _logger.Trace($"Docker Inspect : {running}");
             }
         }
 
         private async Task WaitForStart()
         {
+            _logger.Info("Waiting for Start...");
+
             ProcessRunner runner = new ProcessRunner("docker");
 
             string running = "false";
@@ -282,6 +266,8 @@ namespace Minecraft_Server_Controller
 
                 if (result)
                     running = runner.STDOutput.Last();
+
+                _logger.Trace($"Docker Inspect : {running}");
             }
         }
 
@@ -300,14 +286,14 @@ namespace Minecraft_Server_Controller
 
             File.Delete(path);
 
-            AddLog(LogLevel.Log, $"Deleted backup : {path}");
+            _logger.Info($"Deleted backup : {path}");
         }
 
         public void LoadBackup(string path)
         {
-            AddLog(LogLevel.Log, $"Loading backup : {path}");
+            _logger.Info($"Loading backup : {path}");
 
-            AddLog(LogLevel.Log, $"Deleting current data...");
+            _logger.Info($"Deleting current data...");
 
             foreach (string entry in Directory.GetFileSystemEntries(DATA_DIR))
             {
@@ -319,15 +305,14 @@ namespace Minecraft_Server_Controller
 
             Directory.CreateDirectory(DATA_DIR);
 
-            AddLog(LogLevel.Log, $"Finished Deleting Data!");
+            _logger.Info($"Finished Deleting Data!");
 
-            AddLog(LogLevel.Log, $"Extracting Backup file...");
-
+            _logger.Info($"Extracting Backup file...");
             ProcessRunner runner = new ProcessRunner("7z");
 
             runner.Run($"x {path} -o\"/data\" -y");
 
-            AddLog(LogLevel.Log, $"Finished Extracting Backup!");
+            _logger.Info($"Finished Extracting Backup!");
         }
     }
 }

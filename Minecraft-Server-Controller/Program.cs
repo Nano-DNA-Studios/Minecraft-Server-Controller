@@ -1,4 +1,6 @@
 using Minecraft_Server_Controller.Components;
+using NLog;
+using NLog.Web;
 
 namespace Minecraft_Server_Controller
 {
@@ -9,6 +11,8 @@ namespace Minecraft_Server_Controller
 
         public static void Main(string[] args)
         {
+            Logger logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+
             LoadEnv();
 
             var builder = WebApplication.CreateBuilder(args);
@@ -73,7 +77,19 @@ namespace Minecraft_Server_Controller
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
-            app.Run();
+            try
+            {
+                app.Run();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Stopped program because of exception");
+                throw;
+            }
+            finally
+            {
+                LogManager.Shutdown();
+            }
         }
 
         private static void LoadEnv()

@@ -201,7 +201,7 @@
 		</div>
 
 		<div class="log-body dashboard-log-body">
-			@if (Manager.ServerLogs.Count == 0)
+			@if (!Manager.ServerLogs.Any())
 			{
 				<div class="log-empty">No logs yet.</div>
 			}
@@ -209,7 +209,17 @@
 			{
 				@foreach (string log in Manager.ServerLogs)
 				{
-					<div class="log-line">@log</div>
+					@if (log.Contains("[ERROR]"))
+					{
+						<div class="log-line text-danger">@log</div>
+					} else if (log.Contains("[DEBUG]"))
+					{
+						<div class="log-line text-info">@log</div>
+					}
+					else
+					{
+						<div class="log-line">@log</div>
+					}
 				}
 			}
 		</div>

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="NanoDNA.ProcessRunner" Version="0.3.4" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,9 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="rcon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Update="rcon" CopyToOutputDirectory="Always"/>
+		<None Update="nlog.config" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
