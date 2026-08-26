@@ -19,6 +19,7 @@ services:
 
   server:
     image: nano-minecraft-server:26.2
+    container_name: nano-minecraft-server
     env_file:
         - .env
     environment:

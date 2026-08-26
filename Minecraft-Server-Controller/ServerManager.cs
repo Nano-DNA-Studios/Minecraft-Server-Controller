@@ -90,13 +90,13 @@ namespace Minecraft_Server_Controller
                 return;
             }
 
-            await Broadcast("Stopping Server...", BroadcastColor.Red);
-
             RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
+
+            await ForceSave();
 
             await Task.Delay(Settings.Delay);
 
-            await ForceSave();
+            await Broadcast("Stopping Server...", BroadcastColor.Red);
 
             AddLog(LogLevel.Log, "Stopping Server...");
 
@@ -121,7 +121,7 @@ namespace Minecraft_Server_Controller
 
             ProcessRunner runner = new ProcessRunner("docker");
 
-            await runner.TryRunAsync("start minecraft-server-controller-server-1");
+            await runner.TryRunAsync($"start {Settings.ServerContainerName}");
 
             await WaitForStart();
 
@@ -158,8 +158,6 @@ namespace Minecraft_Server_Controller
 
             if (Status.Online)
             {
-                await Broadcast("Backing Up Server...", BroadcastColor.Red);
-
                 await Task.Delay(Settings.Delay);
 
                 await Stop();
@@ -263,7 +261,7 @@ namespace Minecraft_Server_Controller
             {
                 await Task.Delay(Settings.Delay);
 
-                bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
+                bool result = await runner.TryRunAsync(string.Join(" ", "inspect -f {{.State.Running}}", Settings.ServerContainerName));
 
                 if (result)
                     running = runner.STDOutput.Last();
@@ -280,7 +278,7 @@ namespace Minecraft_Server_Controller
             {
                 await Task.Delay(Settings.Delay);
 
-                bool result = await runner.TryRunAsync("inspect -f {{.State.Running}} minecraft-server-controller-server-1");
+                bool result = await runner.TryRunAsync(string.Join(" ", "inspect -f {{.State.Running}}", Settings.ServerContainerName));
 
                 if (result)
                     running = runner.STDOutput.Last();
