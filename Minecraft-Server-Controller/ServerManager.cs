@@ -53,7 +53,7 @@ namespace Minecraft_Server_Controller
 
             await RunCommand("save-all");
 
-            _logger.Debug("Saved Server!");
+            _logger.Info("Saved Server!");
 
             await Broadcast("Server Saved!", BroadcastColor.Gold);
         }
@@ -78,7 +78,7 @@ namespace Minecraft_Server_Controller
 
             await RunCommand("save-all flush");
 
-            _logger.Debug("Finished Force Saving Server");
+            _logger.Info("Finished Force Saving Server");
 
             await Task.Delay(Settings.Delay);
 
@@ -111,7 +111,7 @@ namespace Minecraft_Server_Controller
 
             await WaitForStop();
 
-            _logger.Debug("Finished Stopping Server");
+            _logger.Info("Finished Stopping Server");
         }
 
         public async Task Start()
@@ -132,7 +132,7 @@ namespace Minecraft_Server_Controller
 
             await WaitForStart();
 
-            _logger.Debug("Server Started!");
+            _logger.Info("Server Started!");
         }
 
         public async Task Restart()
@@ -188,7 +188,7 @@ namespace Minecraft_Server_Controller
 
             await Task.Delay(Settings.Delay);
 
-            _logger.Debug("Server Compressed. Ready to Start Server");
+            _logger.Info("Server Compressed. Ready to Start Server");
 
             string[] files = GetBackupFiles();
 
@@ -336,7 +336,7 @@ namespace Minecraft_Server_Controller
 
             runner.Run($"x {path} -o\"/data\" -y");
 
-            _logger.Debug($"Finished Extracting Backup!");
+            _logger.Info($"Finished Extracting Backup!");
         }
     }
 }
