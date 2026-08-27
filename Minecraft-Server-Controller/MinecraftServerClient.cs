@@ -91,7 +91,7 @@ namespace Minecraft_Server_Controller
             status.Online = true;
             status.Latency = stopwatch.Elapsed;
 
-            _logger.Debug("Minecraft status received: OnlinePlayers={OnlinePlayers}, MaxPlayers={MaxPlayers}, Version={Version}, LatencyMs={LatencyMs}.",
+            _logger.Trace("Minecraft status received: OnlinePlayers={OnlinePlayers}, MaxPlayers={MaxPlayers}, Version={Version}, LatencyMs={LatencyMs}.",
                 status.OnlinePlayers,
                 status.MaxPlayers,
                 status.Version,
