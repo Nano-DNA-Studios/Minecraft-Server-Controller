@@ -1,23 +1,22 @@
-﻿
+﻿using NLog;
+
 namespace Minecraft_Server_Controller
 {
     public class HeartbeatService : BackgroundService
     {
-        public CancellationTokenSource CancellationTokenSource { get; set; }
-
         private ServerSettings Settings { get; set; }
 
         public MinecraftServerClient Client { get; set; }
 
         private ServerStatus _Status { get; set; }
 
+        protected static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public event Action? OnPingResult;
 
         public HeartbeatService(ServerStatus status, ServerSettings settings)
         {
             Settings = settings;
-
-            CancellationTokenSource = new CancellationTokenSource();
 
             Client = new MinecraftServerClient(Settings);
 
@@ -26,19 +25,19 @@ namespace Minecraft_Server_Controller
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Console.WriteLine("Starting Service");
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
                     await Client.PingServer(_Status);
 
+                    _logger.Trace("Server is Live!");
+
                     _Status.Update();
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Something went wrong with ping! {e.Message}");
+                    _logger.Error(e, "Minecraft server heartbeat failed.");
 
                     _Status.Online = false;
                     _Status.Version = "unknown";
@@ -49,6 +48,8 @@ namespace Minecraft_Server_Controller
                 }
 
                 OnPingResult?.Invoke();
+
+                _logger.Trace("Heartbeat cycle complete.");
 
                 await Task.Delay(Settings.Delay);
             }

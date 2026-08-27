@@ -1,6 +1,6 @@
 using Minecraft_Server_Controller.Components;
-using NLog;
 using NLog.Web;
+using NLog;
 
 namespace Minecraft_Server_Controller
 {
@@ -12,8 +12,6 @@ namespace Minecraft_Server_Controller
         public static void Main(string[] args)
         {
             Logger logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-
-            LoadEnv();
 
             var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +43,7 @@ namespace Minecraft_Server_Controller
             builder.Services.AddSingleton<DailyService>(daily);
             builder.Services.AddSingleton<ServerManager>(manager);
             builder.Services.AddSingleton<HeartbeatService>(heartbeat);
-            builder.Services.AddSingleton(hourly);
+            builder.Services.AddSingleton<HourlyService>(hourly);
 
             builder.Services.AddHostedService<HeartbeatService>(serviceProvider => heartbeat);
             builder.Services.AddHostedService<HourlyService>(serviceProvider => hourly);
@@ -89,30 +87,6 @@ namespace Minecraft_Server_Controller
             finally
             {
                 LogManager.Shutdown();
-            }
-        }
-
-        private static void LoadEnv()
-        {
-            string envPath = ".env";
-
-            if (!Path.Exists(envPath))
-                return;
-
-            foreach (string line in File.ReadLines(envPath))
-            {
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
-                    continue;
-
-                string[] parts = line.Split('=');
-
-                if (parts.Length != 2)
-                    continue;
-
-                var key = parts[0];
-                var value = parts[1];
-
-                Environment.SetEnvironmentVariable(key, value);
             }
         }
     }

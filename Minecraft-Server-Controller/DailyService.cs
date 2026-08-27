@@ -11,11 +11,17 @@ namespace Minecraft_Server_Controller
             {
                 if (!_Manager.Status.Online)
                 {
+                    _logger.Debug("Server is not online, trying Daily Service again...");
+
                     await Task.Delay(10000);
                     continue;
                 }
 
+                _logger.Trace($"Daily Backup Scheduled. Waiting {GetDelay(false)}.");
+
                 await Task.Delay(GetDelay(false));
+
+                _logger.Info("Running Daily Restart & Backup Service...");
 
                 await _Manager.Broadcast("Restarting Server for Backup...", BroadcastColor.Red);
 
@@ -26,6 +32,8 @@ namespace Minecraft_Server_Controller
                 await Task.Delay(Settings.Delay);
 
                 await _Manager.Start();
+
+                _logger.Info("Completed Daily Restart & Backup Service!");
             }
         }
     }

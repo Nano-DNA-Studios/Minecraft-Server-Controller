@@ -18,20 +18,16 @@ namespace Minecraft_Server_Controller
 
         public const string DATA_DIR = "/data";
 
-        public IEnumerable<string> ServerLogs
-        {
-            get
-            {
-                var target = LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget");
-                return target?.Logs.Reverse() ?? Enumerable.Empty<string>();
-            }
-        }
-
         public ServerStatus Status { get; private set; }
 
         public ServerSettings Settings { get; private set; }
 
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        public IEnumerable<string> ServerLogs
+        {
+            get { return LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget")?.Logs ?? Enumerable.Empty<string>(); }
+        }
 
         public ServerManager(ServerStatus status, ServerSettings settings)
         {
@@ -41,9 +37,11 @@ namespace Minecraft_Server_Controller
 
         public async Task Save()
         {
+            _logger.Debug($"Save Requested. Server Online : {Status.Online}");
+
             if (!Status.Online)
             {
-                _logger.Error("Server Not Online, Cannot Save");
+                _logger.Warn("Server Not Online, Cannot Save");
                 return;
             }
 
@@ -51,20 +49,22 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Saving...", BroadcastColor.Gold);
 
-            _logger.Info("Saving Server...");
+            _logger.Trace("Saving Server...");
 
             await RunCommand("save-all");
 
-            _logger.Info("Finished Saving Server");
+            _logger.Debug("Saved Server!");
 
             await Broadcast("Server Saved!", BroadcastColor.Gold);
         }
 
         public async Task ForceSave()
         {
+            _logger.Debug($"Force Save Requested. Server Online : {Status.Online}");
+
             if (!Status.Online)
             {
-                _logger.Error("Server Not Online, Cannot Force Save");
+                _logger.Warn("Server Not Online, Cannot Force Save");
                 return;
             }
 
@@ -74,11 +74,11 @@ namespace Minecraft_Server_Controller
 
             await Task.Delay(Settings.Delay);
 
-            _logger.Info("Force Saving Server...");
+            _logger.Trace("Force Saving Server...");
 
             await RunCommand("save-all flush");
 
-            _logger.Info("Finished Force Saving Server");
+            _logger.Debug("Finished Force Saving Server");
 
             await Task.Delay(Settings.Delay);
 
@@ -87,9 +87,11 @@ namespace Minecraft_Server_Controller
 
         public async Task Stop()
         {
+            _logger.Debug($"Stop Requested. Server Online : {Status.Online}");
+
             if (!Status.Online)
             {
-                _logger.Error("Server Not Online, Cannot Stop Server");
+                _logger.Warn("Server Not Online, Cannot Stop Server");
                 return;
             }
 
@@ -101,7 +103,7 @@ namespace Minecraft_Server_Controller
 
             await Broadcast("Stopping Server...", BroadcastColor.Red);
 
-            _logger.Info("Stopping Server...");
+            _logger.Trace("Stopping Server...");
 
             await Task.Delay(Settings.Delay);
 
@@ -109,18 +111,20 @@ namespace Minecraft_Server_Controller
 
             await WaitForStop();
 
-            _logger.Info("Finished Stopping Server");
+            _logger.Debug("Finished Stopping Server");
         }
 
         public async Task Start()
         {
+            _logger.Debug($"Start Requested. Server Online : {Status.Online}");
+
             if (Status.Online)
             {
-                _logger.Error("Server Is Already Online, Cannot Start Server");
+                _logger.Warn("Server Is Already Online, Cannot Start Server");
                 return;
             }
 
-            _logger.Info("Starting Server...");
+            _logger.Trace("Starting Server...");
 
             ProcessRunner runner = new ProcessRunner("docker");
 
@@ -128,17 +132,16 @@ namespace Minecraft_Server_Controller
 
             await WaitForStart();
 
-            while (!Status.Online)
-                await Task.Delay(Settings.Delay);
-
-            _logger.Info("Server Started!");
+            _logger.Debug("Server Started!");
         }
 
         public async Task Restart()
         {
+            _logger.Debug($"Restart Requested. Server Online : {Status.Online}");
+
             if (!Status.Online)
             {
-                _logger.Error("Server Not Online, Cannot Restart Server");
+                _logger.Warn("Server Not Online, Cannot Restart Server");
                 return;
             }
 
@@ -157,10 +160,12 @@ namespace Minecraft_Server_Controller
 
         public async Task Backup()
         {
-            _logger.Info("Backing Up Server...");
+            _logger.Debug($"Backup Requested. Server Online : {Status.Online}");
 
             if (Status.Online)
             {
+                _logger.Warn($"Server is still online during backup, stopping server first...");
+
                 await Task.Delay(Settings.Delay);
 
                 await Stop();
@@ -168,7 +173,7 @@ namespace Minecraft_Server_Controller
 
             await Task.Delay(Settings.Delay);
 
-            _logger.Info("Compressing Server State...");
+            _logger.Trace("Compressing Server State...");
 
             DateTime now = DateTime.Now;
 
@@ -183,7 +188,7 @@ namespace Minecraft_Server_Controller
 
             await Task.Delay(Settings.Delay);
 
-            _logger.Info("Server Compressed. Ready to Start Server");
+            _logger.Debug("Server Compressed. Ready to Start Server");
 
             string[] files = GetBackupFiles();
 
@@ -193,26 +198,30 @@ namespace Minecraft_Server_Controller
 
         public async Task Broadcast(string message, BroadcastColor color)
         {
+            _logger.Trace($"Broadcast Requested. Server Online : {Status.Online}");
+
             if (!Status.Online)
             {
-                _logger.Error("Server Not Online, Cannot Broadcast Message");
+                _logger.Warn("Server Not Online, Cannot Broadcast Message");
                 return;
             }
 
             RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
-            _logger.Info("Broadcasting Message...");
+            _logger.Trace("Broadcasting Message...");
 
             await RunCommand($"tellraw @a {{\"text\":\"{message}\",\"color\":\"{color.ToString().ToLower()}\"}}");
 
-            _logger.Info("Broadcast Completed");
+            _logger.Trace("Broadcast Completed");
         }
 
         public async Task RunCommand(string command)
         {
+            _logger.Trace($"Run Command Requested. Server Online : {Status.Online}");
+
             if (!Status.Online)
             {
-                _logger.Error("Server Not Online, Cannot Save");
+                _logger.Warn("Server Not Online, Cannot Save");
                 return;
             }
 
@@ -223,15 +232,15 @@ namespace Minecraft_Server_Controller
             await runner.RunAsync(command);
 
             foreach (string line in runner.OutputLogs)
-                _logger.Info(line);
+                _logger.Trace(line);
 
             foreach (string line in runner.ErrorLogs)
-                _logger.Error(line);
+                _logger.Trace(line);
         }
 
         private async Task WaitForStop()
         {
-            _logger.Info("Waiting for Stop...");
+            _logger.Trace("Waiting for Stop...");
 
             ProcessRunner runner = new ProcessRunner("docker");
 
@@ -248,11 +257,16 @@ namespace Minecraft_Server_Controller
 
                 _logger.Trace($"Docker Inspect : {running}");
             }
+
+            while (Status.Online)
+                await Task.Delay(Settings.Delay);
+
+            _logger.Debug("Server has Stopped!");
         }
 
         private async Task WaitForStart()
         {
-            _logger.Info("Waiting for Start...");
+            _logger.Trace("Waiting for Start...");
 
             ProcessRunner runner = new ProcessRunner("docker");
 
@@ -269,31 +283,41 @@ namespace Minecraft_Server_Controller
 
                 _logger.Trace($"Docker Inspect : {running}");
             }
+
+            while (!Status.Online)
+                await Task.Delay(Settings.Delay);
+
+            _logger.Trace("Server has Started!");
         }
 
         public string[] GetBackupFiles()
         {
+            _logger.Trace("Grabbing Backup Files.");
+
             if (!Directory.Exists(BACKUP_DIR))
                 return new string[0];
 
-            return Directory.GetFiles(BACKUP_DIR);
+            return Directory.GetFiles(BACKUP_DIR, "*.7z");
         }
 
         public void DeleteBackup(string path)
         {
             if (!File.Exists(path))
+            {
+                _logger.Warn($"Backup {path} doesn't exist. Skipping Delete");
                 return;
+            }
 
             File.Delete(path);
 
-            _logger.Info($"Deleted backup : {path}");
+            _logger.Debug($"Deleted backup : {path}");
         }
 
         public void LoadBackup(string path)
         {
-            _logger.Info($"Loading backup : {path}");
+            _logger.Debug($"Loading backup : {path}");
 
-            _logger.Info($"Deleting current data...");
+            _logger.Trace($"Deleting current data...");
 
             foreach (string entry in Directory.GetFileSystemEntries(DATA_DIR))
             {
@@ -305,14 +329,14 @@ namespace Minecraft_Server_Controller
 
             Directory.CreateDirectory(DATA_DIR);
 
-            _logger.Info($"Finished Deleting Data!");
+            _logger.Trace($"Finished Deleting Data!");
 
-            _logger.Info($"Extracting Backup file...");
+            _logger.Trace($"Extracting Backup file...");
             ProcessRunner runner = new ProcessRunner("7z");
 
             runner.Run($"x {path} -o\"/data\" -y");
 
-            _logger.Info($"Finished Extracting Backup!");
+            _logger.Debug($"Finished Extracting Backup!");
         }
     }
 }

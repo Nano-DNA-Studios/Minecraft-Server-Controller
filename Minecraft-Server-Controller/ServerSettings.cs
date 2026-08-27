@@ -45,6 +45,7 @@ namespace Minecraft_Server_Controller
             MapHealthUrl = string.Empty;
             ServerContainerName = string.Empty;
 
+            LoadEnvFromFile();
             LoadEnv();
         }
 
@@ -121,6 +122,30 @@ namespace Minecraft_Server_Controller
 
             if (LoadStr("ServerContainerName", out string serverContainerName))
                 ServerContainerName = serverContainerName;
+        }
+
+        private void LoadEnvFromFile()
+        {
+            string envPath = ".env";
+
+            if (!Path.Exists(envPath))
+                return;
+
+            foreach (string line in File.ReadLines(envPath))
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+                    continue;
+
+                string[] parts = line.Split('=');
+
+                if (parts.Length != 2)
+                    continue;
+
+                var key = parts[0];
+                var value = parts[1];
+
+                Environment.SetEnvironmentVariable(key, value);
+            }
         }
     }
 }

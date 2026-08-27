@@ -11,17 +11,25 @@ namespace Minecraft_Server_Controller
             {
                 if (!_Manager.Status.Online)
                 {
+                    _logger.Debug("Server is not online, trying Hourly Service again...");
+
                     await Task.Delay(10000);
                     continue;
                 }
 
+                _logger.Trace($"Hourly Save Scheduled. Waiting {GetDelay(true)}.");
+
                 await Task.Delay(GetDelay(true));
+
+                _logger.Info("Running Hourly Save Service...");
 
                 await _Manager.Broadcast("Saving Server in 3 seconds!", BroadcastColor.Red);
 
                 await Task.Delay(Settings.Delay);
 
                 await _Manager.Save();
+
+                _logger.Info("Completed Hourly Save Service!");
             }
         }
     }

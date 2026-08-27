@@ -1,4 +1,5 @@
-﻿
+﻿using NLog;
+
 namespace Minecraft_Server_Controller
 {
     public abstract class TimeService : BackgroundService
@@ -6,6 +7,8 @@ namespace Minecraft_Server_Controller
         protected ServerManager _Manager { get; set; }
 
         protected ServerSettings Settings { get; set; }
+
+        protected static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public TimeService(ServerManager manager, ServerSettings settings)
         {
@@ -45,6 +48,8 @@ namespace Minecraft_Server_Controller
                 if (target <= now)
                     target = target.AddDays(1);
             }
+
+            _logger.Trace($"Retrieving Delay of : {target - now}");
 
             return target - now;
         }

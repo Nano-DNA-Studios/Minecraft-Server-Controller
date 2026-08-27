@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.TagHelpers;
+﻿using NLog;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
@@ -12,6 +12,8 @@ namespace Minecraft_Server_Controller
 
         private ServerSettings _ServerSettings { get; set; }
 
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
         public MinecraftServerClient(ServerSettings settings)
         {
             _ServerSettings = settings;
@@ -20,6 +22,8 @@ namespace Minecraft_Server_Controller
 
         public async Task PingServer(ServerStatus status)
         {
+            _logger.Trace("Pinging Minecraft server at {Host}:{Port}.", _ServerSettings.RCONHost, _ServerSettings.ServerPort);
+
             CancellationToken token = CancellationTokenSource.Token;
 
             TcpClient client = new();
@@ -27,13 +31,13 @@ namespace Minecraft_Server_Controller
             await client.ConnectAsync(_ServerSettings.RCONHost, _ServerSettings.ServerPort);
 
             using NetworkStream stream = client.GetStream();
-
+            
             await SendHandshakeAsync(stream, _ServerSettings.RCONHost, _ServerSettings.ServerPort, token);
             await SendStatusRequestAsync(stream, token);
 
             string json = await ReadStatusResponseAsync(stream, token);
 
-            var stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
             long payload = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
@@ -86,6 +90,13 @@ namespace Minecraft_Server_Controller
 
             status.Online = true;
             status.Latency = stopwatch.Elapsed;
+
+            _logger.Debug("Minecraft status received: OnlinePlayers={OnlinePlayers}, MaxPlayers={MaxPlayers}, Version={Version}, LatencyMs={LatencyMs}.",
+                status.OnlinePlayers,
+                status.MaxPlayers,
+                status.Version,
+                status.Latency.TotalMilliseconds
+            );
         }
 
         private static async Task SendStatusRequestAsync(Stream stream, CancellationToken cancellationToken)

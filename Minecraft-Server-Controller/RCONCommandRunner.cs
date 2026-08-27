@@ -1,5 +1,6 @@
 ﻿using NanoDNA.AutomationResults;
 using NanoDNA.ProcessRunner;
+using NLog;
 
 namespace Minecraft_Server_Controller
 {
@@ -16,6 +17,8 @@ namespace Minecraft_Server_Controller
         public string[] OutputLogs { get; set; }
 
         public string[] ErrorLogs { get; set; }
+
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public RCONCommandRunner(string host, int port, string password)
         {
@@ -45,6 +48,8 @@ namespace Minecraft_Server_Controller
             OutputLogs = Runner.STDOutput;
             ErrorLogs = Runner.STDError;
 
+            _logger.Trace($"Ran RCON Command : {fullCommand}, Succeeded : {result.IsSuccess}");
+
             return result;
         }
 
@@ -56,6 +61,8 @@ namespace Minecraft_Server_Controller
 
             OutputLogs = Runner.STDOutput;
             ErrorLogs = Runner.STDError;
+
+            _logger.Trace($"Ran Async RCON Command : {fullCommand}, Succeeded : {result.IsSuccess}");
 
             return result;
         }

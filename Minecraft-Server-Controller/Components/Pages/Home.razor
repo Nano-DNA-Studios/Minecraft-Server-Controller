@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using NLog
 @rendermode InteractiveServer
 @inject ServerManager Manager
 @inject ServerStatus Status
@@ -209,17 +210,7 @@
 			{
 				@foreach (string log in Manager.ServerLogs)
 				{
-					@if (log.Contains("[ERROR]"))
-					{
-						<div class="log-line text-danger">@log</div>
-					} else if (log.Contains("[DEBUG]"))
-					{
-						<div class="log-line text-info">@log</div>
-					}
-					else
-					{
-						<div class="log-line">@log</div>
-					}
+					<div class="log-line @GetLogColor(log)">@log</div>
 				}
 			}
 		</div>
@@ -229,10 +220,12 @@
 
 @code {
 
-	private string MessageStr = string.Empty;
-	private string CommandStr = string.Empty;
+	private string MessageStr { get; set; } = string.Empty;
+	private string CommandStr { get; set; } = string.Empty;
 
-	private bool MapAvailable = false;
+	private bool MapAvailable { get; set; } = false;
+
+	protected static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
 	private BroadcastColor SelectedColor = BroadcastColor.Gold;
 
@@ -264,17 +257,23 @@
 
 	private void GetMap()
 	{
+		_logger.Trace("Checking Map Health");
+
 		HttpClient client = HttpClientFactory.CreateClient("Map");
 
 		HttpResponseMessage message = client.GetAsync(Settings.MapHealthUrl, HttpCompletionOption.ResponseHeadersRead).Result;
 
 		MapAvailable = message.IsSuccessStatusCode;
+
+		_logger.Trace($"Map is Healthy : {MapAvailable}");
 	}
 
 	private async Task SendMessage()
 	{
 		if (string.IsNullOrWhiteSpace(MessageStr))
 			return;
+
+		_logger.Info($"Sending Message from Controller : {MessageStr}");
 
 		await Manager.Broadcast(MessageStr, SelectedColor);
 		MessageStr = string.Empty;
@@ -286,6 +285,8 @@
 		if (string.IsNullOrWhiteSpace(CommandStr))
 			return;
 
+		_logger.Info($"Sending Command from Controller : {CommandStr}");
+
 		await Manager.RunCommand(CommandStr);
 		CommandStr = string.Empty;
 		await InvokeAsync(StateHasChanged);
@@ -293,36 +294,48 @@
 
 	private async Task Save()
 	{
+		_logger.Info("Saving Server from Controller");
+
 		await Manager.Save();
 		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task ForceSave()
 	{
+		_logger.Info("Force Saving Server from Controller");
+
 		await Manager.ForceSave();
 		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task Start()
 	{
+		_logger.Info("Starting Server from Controller");
+
 		await Manager.Start();
 		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task Stop()
 	{
+		_logger.Info("Stopping Server from Controller");
+
 		await Manager.Stop();
 		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task Restart()
 	{
+		_logger.Info("Restarting Server from Controller");
+
 		await Manager.Restart();
 		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task Backup()
 	{
+		_logger.Info("Backing Up Server from Controller");
+
 		await Manager.Backup();
 		await InvokeAsync(StateHasChanged);
 	}
@@ -335,6 +348,8 @@
 
 	public async Task DeleteBackup(string file)
 	{
+		_logger.Info("Deleting Backup Server from Controller");
+
 		Manager.DeleteBackup(file);
 
 		await InvokeAsync(StateHasChanged);
@@ -342,10 +357,22 @@
 
 	public async Task LoadBackup(string path)
 	{
+		_logger.Info("Loading Backup Server from Controller");
+
 		await Stop();
 
 		Manager.LoadBackup(path);
 
 		await Start();
+	}
+
+	private string GetLogColor(string log)
+	{
+		@if (log.Contains("[ERROR]"))
+			return "text-danger";
+		else if (log.Contains("[INFO]"))
+			return "text-info";
+		else
+			return string.Empty;
 	}
 }
