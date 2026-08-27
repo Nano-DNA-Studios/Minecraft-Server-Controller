@@ -182,7 +182,7 @@ namespace Minecraft_Server_Controller
 
             CommandRunner runner = new CommandRunner(application: NanoDNA.ProcessRunner.Enums.ProcessApplication.Sh);
 
-            _logger.Debug($"EXECUTE : {command}");
+            _logger.Debug($"SHELL EXECUTE : {command}");
 
             await runner.RunAsync(command);
 
@@ -227,7 +227,7 @@ namespace Minecraft_Server_Controller
 
             RCONCommandRunner runner = new RCONCommandRunner(Settings.RCONHost, Settings.RCONPort, Settings.RCONPassword);
 
-            _logger.Debug($"EXECUTE : {command}");
+            _logger.Debug($"RCON EXECUTE : {command}");
 
             await runner.RunAsync(command);
 
