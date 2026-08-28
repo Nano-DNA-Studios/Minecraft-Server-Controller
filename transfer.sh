@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Config
-IMAGE_NAME="minecraft-server-controller-app"
+IMAGE_NAME="ghcr.io/nano-dna-studios/minecraft-server-controller:latest"
 TAG="latest"
 TARGET_COMPOSE_DIR="~/Services/Minecraft-Server"
 

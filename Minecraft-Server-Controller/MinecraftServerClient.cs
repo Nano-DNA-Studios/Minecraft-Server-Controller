@@ -80,10 +80,11 @@ namespace Minecraft_Server_Controller
 
                     if (players.Count > 0)
                         status.Players = players.ToArray();
-                    else 
-                        status.Players = new Player[0];
                 }
             }
+
+            if (status.OnlinePlayers == 0)
+                status.Players = new Player[0];
 
             if (root.TryGetProperty("description", out JsonElement descriptionElement))
                 status.Motd = ReadDescription(descriptionElement);
