@@ -44,7 +44,7 @@ jobs:
     steps:
       - name: Build Docker Image
         shell: bash
-        run: docker build -t ghcr.io/nano-dna-studios/minecraft-server-controller:latest .
+        run: docker build --build-arg BUILD_CONFIG="Release" -t ghcr.io/nano-dna-studios/minecraft-server-controller:latest .
 
   upload-source:
     runs-on: ["self-hosted", "run-${{github.run_id}}"]

@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Build Docker Image
         shell: bash
-        run: docker build -t ghcr.io/nano-dna-studios/minecraft-server-controller:${{ needs.version.outputs.version }} .
+        run: docker build --build-arg BUILD_CONFIG="Release" -t ghcr.io/nano-dna-studios/minecraft-server-controller:${{ needs.version.outputs.version }} .
         
   upload-docker:
     needs: [build-docker, version]
