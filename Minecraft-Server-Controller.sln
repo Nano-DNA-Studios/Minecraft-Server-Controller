@@ -16,11 +16,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{279B
 		build-run.sh = build-run.sh
 		build.sh = build.sh
 		run.sh = run.sh
+		transfer.sh = transfer.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{E36CAE28-CD8B-4874-A2C1-66255FCD544D}"
 	ProjectSection(SolutionItems) = preProject
 		.env = .env
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Workflows", "Workflows", "{F8426D9B-048F-445F-A6AE-2FF604ECE9C0}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\workflows\publish.yml = .github\workflows\publish.yml
 	EndProjectSection
 EndProject
 Global
