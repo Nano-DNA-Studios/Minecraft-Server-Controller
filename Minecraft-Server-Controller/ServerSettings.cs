@@ -87,8 +87,17 @@ namespace Minecraft_Server_Controller
 
         private void LoadEnv()
         {
-            if (LoadInt("RCONPort", out int port))
+            if (LoadInt("RCON_PORT", out int port))
                 RCONPort = port;
+
+            if (LoadInt("SERVER_PORT", out int serverPort))
+                ServerPort = serverPort;
+
+            if (LoadStr("RCON_PASSWORD", out string rconPass))
+                RCONPassword = rconPass;
+
+            if (LoadStr("MOTD", out string serverName))
+                ServerName = serverName;
 
             if (LoadInt("Delay", out int delay))
                 Delay = delay;
@@ -99,20 +108,11 @@ namespace Minecraft_Server_Controller
             if (LoadInt("MapPort", out int mapPort))
                 MapPort = mapPort;
 
-            if (LoadInt("ServerPort", out int serverPort))
-                ServerPort = serverPort;
-
             if (LoadInt("ControllerPort", out int controllerPort))
                 ControllerPort = controllerPort;
 
-            if (LoadStr("RCONPassword", out string rconPass))
-                RCONPassword = rconPass;
-
             if (LoadStr("RCONHost", out string rconHost))
                 RCONHost = rconHost;
-
-            if (LoadStr("ServerName", out string serverName))
-                ServerName = serverName;
 
             if (LoadStr("MapHealthUrl", out string mapHealth))
                 MapHealthUrl = mapHealth;
