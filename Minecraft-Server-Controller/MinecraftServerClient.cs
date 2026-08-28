@@ -81,7 +81,7 @@ namespace Minecraft_Server_Controller
                     if (players.Count > 0)
                         status.Players = players.ToArray();
                     else 
-                        status.Players = null;
+                        status.Players = new Player[0];
                 }
             }
 
