@@ -166,14 +166,6 @@
     border-color: rgba(239, 68, 68, 0.35);
 }
 
-/*.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
-    padding: 24px;
-    background: #0f172a;
-}*/
-
 .stats-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -184,7 +176,7 @@
 
 .server-details-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
 }
 

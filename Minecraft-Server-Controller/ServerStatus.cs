@@ -19,11 +19,16 @@ namespace Minecraft_Server_Controller
         public bool Online;
         public string? Version;
         public int OnlinePlayers;
-        public Player[]? Players;
+        public Player[] Players = new Player[0];
         public int MaxPlayers;
         public string? Motd;
         public TimeSpan Latency;
         public string? Error = null;
+
+        public string CPUPercent = string.Empty;
+        public string MemoryPercent = string.Empty;
+        public string MemoryUsage = string.Empty;
+
 
         public event Action? OnUpdated;
 

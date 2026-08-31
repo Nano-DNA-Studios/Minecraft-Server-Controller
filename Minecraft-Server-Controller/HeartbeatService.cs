@@ -1,4 +1,6 @@
 ﻿using NLog;
+using System.Text.Json;
+using NanoDNA.ProcessRunner;
 
 namespace Minecraft_Server_Controller
 {
@@ -29,6 +31,8 @@ namespace Minecraft_Server_Controller
             {
                 try
                 {
+                    await GetResourceUsage(_Status);
+
                     await Client.PingServer(_Status);
 
                     _logger.Trace("Server is Live!");
@@ -53,6 +57,27 @@ namespace Minecraft_Server_Controller
 
                 await Task.Delay(Settings.Delay);
             }
+        }
+
+        private async Task GetResourceUsage(ServerStatus status)
+        {
+            ProcessRunner runner = new ProcessRunner("docker");
+
+            if (!await runner.TryRunAsync($"stats {Settings.ServerContainerName} --no-stream --format json"))
+                return;
+
+            using JsonDocument document = JsonDocument.Parse(runner.STDOutput[0]);
+
+            JsonElement root = document.RootElement;
+
+            if (root.TryGetProperty("CPUPerc", out JsonElement cpuPercent))
+                status.CPUPercent = cpuPercent.GetString() ?? "0%";
+
+            if (root.TryGetProperty("MemPerc", out JsonElement memoryPercent))
+                status.MemoryPercent = memoryPercent.GetString() ?? "0%";
+
+            if (root.TryGetProperty("MemUsage", out JsonElement memoryUsage))
+                status.MemoryUsage = memoryUsage.GetString() ?? "0GiB / 0GiB";
         }
     }
 }

@@ -32,7 +32,7 @@
 					</span>
 				</div>
 
-				@if (Status.Players != null)
+				@if (Status.Players.Length > 0)
 				{
 					<div class="log-body dashboard-log-body">
 						@foreach (Player player in Status.Players)
@@ -55,6 +55,20 @@
 					<span class="stat-label">Version</span>
 					<span class="stat-value">
 						@(string.IsNullOrWhiteSpace(Status.Version) ? "Unknown" : Status.Version)
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">CPU Usage</span>
+					<span class="stat-value">
+						@Status.CPUPercent
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">Memory Usage</span>
+					<span class="stat-value">
+						@Status.MemoryUsage (@Status.MemoryPercent)
 					</span>
 				</div>
 
