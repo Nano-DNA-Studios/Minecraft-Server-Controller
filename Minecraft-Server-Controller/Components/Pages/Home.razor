@@ -59,6 +59,13 @@
 				</div>
 
 				<div class="stat-tile">
+					<span class="stat-label">Latency</span>
+					<span class="stat-value">
+						@Status.Latency.TotalMilliseconds.ToString("0") ms
+					</span>
+				</div>
+
+				<div class="stat-tile">
 					<span class="stat-label">CPU Usage</span>
 					<span class="stat-value">
 						@Status.CPUPercent
@@ -69,13 +76,6 @@
 					<span class="stat-label">Memory Usage</span>
 					<span class="stat-value">
 						@Status.MemoryUsage (@Status.MemoryPercent)
-					</span>
-				</div>
-
-				<div class="stat-tile">
-					<span class="stat-label">Latency</span>
-					<span class="stat-value">
-						@Status.Latency.TotalMilliseconds.ToString("0") ms
 					</span>
 				</div>
 
