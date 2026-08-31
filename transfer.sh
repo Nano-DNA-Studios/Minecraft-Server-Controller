@@ -19,7 +19,7 @@ echo "--- STEP 4: Transferring and Loading Image Directly ---"
 docker save "${IMAGE_NAME}:${TAG}" | ssh dna-adenine "docker load"
 
 echo "--- STEP 5: Restarting Docker Compose on Target ---"
-ssh rnaserver << EOF
+ssh dna-adenine << EOF
   echo "--> Navigating to compose directory..."
   cd ${TARGET_COMPOSE_DIR}
   
