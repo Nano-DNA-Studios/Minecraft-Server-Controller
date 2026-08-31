@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Config
-IMAGE_NAME="ghcr.io/nano-dna-studios/minecraft-server-controller:latest"
+IMAGE_NAME="ghcr.io/nano-dna-studios/minecraft-server-controller"
 TAG="latest"
 TARGET_COMPOSE_DIR="~/Services/Minecraft-Server"
 
 echo "--- STEP 1: Deep Cleaning Project ---"
-rm -rf Automatic-Bluray-Ripping/bin
-rm -rf Automatic-Bluray-Ripping/obj
+rm -rf Minecraft-Server-Controller/bin
+rm -rf Minecraft-Server-Controller/obj
 
 echo "--- STEP 2: Publishing for Linux-x64 ---"
 dotnet publish "$PROJECT_FILE" -c Release -r linux-x64 --self-contained true

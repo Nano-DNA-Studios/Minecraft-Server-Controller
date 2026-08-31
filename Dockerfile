@@ -29,7 +29,7 @@ RUN useradd -ms /bin/bash ${USERNAME}
 COPY ./Minecraft-Server-Controller/rcon /usr/bin/rcon
 COPY ./Minecraft-Server-Controller/bin/${BUILD_CONFIG}/net8.0/linux-x64/publish/ .
 
-RUN mkdir /data /backup && chown -R ${USERNAME}:${USERNAME} /Server-Controller /data /backup
+RUN mkdir /data /backup && chown -R ${USERNAME}:${USERNAME} /Server-Controller /data /backup && chmod 0755 /usr/bin/rcon
 
 # Drop privileges to non-root account
 USER MSC
