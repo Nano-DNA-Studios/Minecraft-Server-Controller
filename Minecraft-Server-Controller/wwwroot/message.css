@@ -121,7 +121,6 @@
 
 .dashboard-shell {
     max-width: 100%;
-    margin: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
