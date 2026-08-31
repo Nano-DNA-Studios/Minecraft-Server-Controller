@@ -1,7 +1,394 @@
 ﻿@page "/"
+@using NLog
+@rendermode InteractiveServer
+@inject ServerManager Manager
+@inject ServerStatus Status
+@inject ServerSettings Settings
+@inject IHttpClientFactory HttpClientFactory
+@implements IDisposable
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Server Controller</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="dashboard-shell">
 
-Welcome to your new app.
+	<div class="message-card stats-card">
+		<div class="message-header stats-header">
+			<div>
+				<h3>Server Stats</h3>
+				<p>Current server health, player count, and connection information.</p>
+			</div>
+
+			<span class="status-badge @(Status.Online ? "status-online" : "status-offline")">
+				@(Status.Online ? "Online" : "Offline")
+			</span>
+		</div>
+
+		<div class="stats-grid">
+			<div class="stat-tile players-tile">
+				<div class="stat-heading">
+					<span class="stat-label">Players</span>
+					<span class="stat-value">
+						@Status.OnlinePlayers / @Status.MaxPlayers
+					</span>
+				</div>
+
+				@if (Status.Players.Length > 0)
+				{
+					<div class="log-body dashboard-log-body">
+						@foreach (Player player in Status.Players)
+						{
+							<div class="log-line">@player.Name (@player.ID)</div>
+						}
+					</div>
+				}
+			</div>
+
+			<div class="server-details-grid">
+				<div class="stat-tile">
+					<span class="stat-label">Server Name</span>
+					<span class="stat-value stat-value-small">
+						@(string.IsNullOrWhiteSpace(Status.Motd) ? "Unavailable" : Status.Motd)
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">Version</span>
+					<span class="stat-value">
+						@(string.IsNullOrWhiteSpace(Status.Version) ? "Unknown" : Status.Version)
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">Latency</span>
+					<span class="stat-value">
+						@Status.Latency.TotalMilliseconds.ToString("0") ms
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">CPU Usage</span>
+					<span class="stat-value">
+						@Status.CPUPercent
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">Memory Usage</span>
+					<span class="stat-value">
+						@Status.MemoryUsage (@Status.MemoryPercent)
+					</span>
+				</div>
+
+				<div class="stat-tile">
+					<span class="stat-label">Server Map</span>
+					<a class="send-button action-button action-save"
+					   href="@Settings.MapBrowserUrl"
+					   target="_blank"
+					   rel="noopener noreferrer">
+						Map
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="message-card">
+		<div class="message-header">
+			<h3>Server Management</h3>
+			<p>Server lifecycle controls and save operations.</p>
+		</div>
+
+		<div class="message-body">
+			<div class="management-grid">
+				<button class="send-button action-button action-start" @onclick="Start">Start</button>
+				<button class="send-button action-button action-stop" @onclick="Stop">Stop</button>
+				<button class="send-button action-button action-restart" @onclick="Restart">Restart</button>
+				<button class="send-button action-button action-save" @onclick="Save">Save</button>
+				<button class="send-button action-button action-force-save" @onclick="ForceSave">Force Save</button>
+				<button class="send-button action-button action-backup" @onclick="Backup">Backup</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="message-card stats-card">
+		<div class="message-header stats-header">
+			<div>
+				<h3>Load Backup</h3>
+				<p>Load a backup world into the server</p>
+			</div>
+		</div>
+
+		<div class="backup-grid">
+			@foreach (string file in Manager.GetBackupFiles())
+			{
+				<div class="stat-tile">
+					<span class="stat-label">@Path.GetFileNameWithoutExtension(file)</span>
+
+					<div class="d-flex flex-row" style="gap:10px">
+						<button class="send-button action-button action-start" @onclick="() => LoadBackup(file)">Load</button>
+						<button class="send-button action-button action-stop" @onclick="() => DeleteBackup(file)">Delete</button>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+
+	<div class="message-card">
+		<div class="message-header">
+			<h3>Server Actions</h3>
+			<p>Send a player broadcast and run an RCON command from the same panel.</p>
+		</div>
+
+		<div class="message-body">
+			<div class="tools-grid">
+
+				<div class="tool-panel">
+					<div class="tool-header">
+						<h4>Broadcast Message</h4>
+						<p>Send a message to every player currently online.</p>
+					</div>
+
+					<textarea class="message-input"
+							  @bind="MessageStr"
+							  placeholder="Enter your message...">
+					</textarea>
+
+					<select class="message-select" @bind="SelectedColor">
+						@foreach (BroadcastColor color in Colors)
+						{
+							<option value="@color">@color.ToString()</option>
+						}
+					</select>
+
+					<button class="send-button tool-button" @onclick="SendMessage">
+						Send Message
+					</button>
+				</div>
+
+				<div class="tool-panel">
+					<div class="tool-header">
+						<h4>Run Command</h4>
+						<p>Run a server command using RCON.</p>
+					</div>
+
+					<input class="message-input command-input"
+						   @bind="CommandStr"
+						   placeholder="Enter your command..." />
+
+					<div class="tool-spacer"></div>
+
+					<button class="send-button tool-button" @onclick="SendCommand">
+						Run Command
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="message-card">
+		<div class="message-header">
+			<h3>Server Map</h3>
+			<p>Has an IFrame of the Server Map for quick view and access</p>
+		</div>
+
+		<div class="message-body">
+			@if (MapAvailable)
+			{
+				<iframe src="@Settings.MapBrowserUrl"
+						style="width: 100%; height: 95vh; border: none; border-radius:10px">
+				</iframe>
+			}
+			else
+			{
+				<p>The server map is currently unavailable.</p>
+
+				<button class="send-button action-button action-save" onclick="@(() => GetMap());">
+					Try Map Again
+				</button>
+			}
+		</div>
+	</div>
+
+	<div class="message-card log-card">
+		<div class="message-header">
+			<h3>Server Logs</h3>
+			<p>Latest server activity and command output.</p>
+		</div>
+
+		<div class="log-body dashboard-log-body">
+			@if (!Manager.ServerLogs.Any())
+			{
+				<div class="log-empty">No logs yet.</div>
+			}
+			else
+			{
+				@foreach (string log in Manager.ServerLogs)
+				{
+					<div class="log-line @GetLogColor(log)">@log</div>
+				}
+			}
+		</div>
+	</div>
+
+</div>
+
+@code {
+
+	private string MessageStr { get; set; } = string.Empty;
+	private string CommandStr { get; set; } = string.Empty;
+
+	private bool MapAvailable { get; set; } = false;
+
+	protected static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+	private BroadcastColor SelectedColor = BroadcastColor.Gold;
+
+	private BroadcastColor[] Colors =
+	[
+		BroadcastColor.Gold,
+		BroadcastColor.Red,
+		BroadcastColor.Blue,
+		BroadcastColor.Green
+	];
+
+	private System.Threading.Timer? RefreshTimer;
+
+	protected override void OnInitialized()
+	{
+		Status.OnUpdated += Ping;
+
+		RefreshTimer = new System.Threading.Timer(async _ =>
+		{
+			await InvokeAsync(StateHasChanged);
+		}, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+	}
+
+	private void Ping()
+	{
+		GetMap();
+		InvokeAsync(StateHasChanged);
+	}
+
+	private void GetMap()
+	{
+		_logger.Trace("Checking Map Health");
+
+		HttpClient client = HttpClientFactory.CreateClient("Map");
+
+		HttpResponseMessage message = client.GetAsync(Settings.MapHealthUrl, HttpCompletionOption.ResponseHeadersRead).Result;
+
+		MapAvailable = message.IsSuccessStatusCode;
+
+		_logger.Trace($"Map is Healthy : {MapAvailable}");
+	}
+
+	private async Task SendMessage()
+	{
+		if (string.IsNullOrWhiteSpace(MessageStr))
+			return;
+
+		_logger.Info($"Sending Message from Controller : {MessageStr}");
+
+		await Manager.Broadcast(MessageStr, SelectedColor);
+		MessageStr = string.Empty;
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task SendCommand()
+	{
+		if (string.IsNullOrWhiteSpace(CommandStr))
+			return;
+
+		_logger.Info($"Sending Command from Controller : {CommandStr}");
+
+		await Manager.RunCommand(CommandStr);
+		CommandStr = string.Empty;
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Save()
+	{
+		_logger.Info("Saving Server from Controller");
+
+		await Manager.Save();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task ForceSave()
+	{
+		_logger.Info("Force Saving Server from Controller");
+
+		await Manager.ForceSave();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Start()
+	{
+		_logger.Info("Starting Server from Controller");
+
+		await Manager.Start();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Stop()
+	{
+		_logger.Info("Stopping Server from Controller");
+
+		await Manager.Stop();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Restart()
+	{
+		_logger.Info("Restarting Server from Controller");
+
+		await Manager.Restart();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async Task Backup()
+	{
+		_logger.Info("Backing Up Server from Controller");
+
+		await Manager.Backup();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		Status.OnUpdated -= Ping;
+		RefreshTimer?.Dispose();
+	}
+
+	public async Task DeleteBackup(string file)
+	{
+		_logger.Info("Deleting Backup Server from Controller");
+
+		Manager.DeleteBackup(file);
+
+		await InvokeAsync(StateHasChanged);
+	}
+
+	public async Task LoadBackup(string path)
+	{
+		_logger.Info("Loading Backup Server from Controller");
+
+		await Stop();
+
+		Manager.LoadBackup(path);
+
+		await Start();
+	}
+
+	private string GetLogColor(string log)
+	{
+		@if (log.Contains("[ERROR]"))
+			return "text-danger";
+		else if (log.Contains("[INFO]"))
+			return "text-info";
+		else if (log.Contains("[INFO]"))
+			return "text-warning";
+		else
+			return string.Empty;
+	}
+}
