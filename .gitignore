@@ -55,3 +55,4 @@ nunit-*.xml
 /.vs
 .env
 /backup
+/Scripts/transfer.sh
