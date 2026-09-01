@@ -17,20 +17,32 @@ namespace Minecraft_Server_Controller
                     continue;
                 }
 
-                _logger.Trace($"Hourly Save Scheduled. Waiting {GetDelay(true)}.");
-
-                await Task.Delay(GetDelay(true));
-
-                _logger.Info("Running Hourly Save Service...");
-
-                await _Manager.Broadcast("Saving Server in 3 seconds!", BroadcastColor.Red);
-
-                await Task.Delay(Settings.Delay);
-
-                await _Manager.Save();
-
-                _logger.Info("Completed Hourly Save Service!");
+                try
+                {
+                    await RunHourlyService();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error($"Error occured in Hourly Service : {ex.Message}");
+                }
             }
+        }
+
+        private async Task RunHourlyService()
+        {
+            _logger.Trace($"Hourly Save Scheduled. Waiting {GetDelay(true)}.");
+
+            await Task.Delay(GetDelay(true));
+
+            _logger.Info("Running Hourly Save Service...");
+
+            await _Manager.Broadcast("Saving Server in 3 seconds!", BroadcastColor.Red);
+
+            await Task.Delay(Settings.Delay);
+
+            await _Manager.Save();
+
+            _logger.Info("Completed Hourly Save Service!");
         }
     }
 }

@@ -17,24 +17,36 @@ namespace Minecraft_Server_Controller
                     continue;
                 }
 
-                _logger.Trace($"Daily Backup Scheduled. Waiting {GetDelay(false)}.");
-
-                await Task.Delay(GetDelay(false));
-
-                _logger.Info("Running Daily Restart & Backup Service...");
-
-                await _Manager.Broadcast("Restarting Server for Backup...", BroadcastColor.Red);
-
-                await Task.Delay(Settings.Delay);
-
-                await _Manager.Backup();
-
-                await Task.Delay(Settings.Delay);
-
-                await _Manager.Start();
-
-                _logger.Info("Completed Daily Restart & Backup Service!");
+                try
+                {
+                    await RunDailyService();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error($"Error Occured in Daily Service : {ex.Message}");
+                }
             }
+        }
+
+        private async Task RunDailyService()
+        {
+            _logger.Trace($"Daily Backup Scheduled. Waiting {GetDelay(false)}.");
+
+            await Task.Delay(GetDelay(false));
+
+            _logger.Info("Running Daily Restart & Backup Service...");
+
+            await _Manager.Broadcast("Restarting Server for Backup...", BroadcastColor.Red);
+
+            await Task.Delay(Settings.Delay);
+
+            await _Manager.Backup();
+
+            await Task.Delay(Settings.Delay);
+
+            await _Manager.Start();
+
+            _logger.Info("Completed Daily Restart & Backup Service!");
         }
     }
 }
