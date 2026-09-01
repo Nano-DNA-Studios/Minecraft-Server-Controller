@@ -36,7 +36,7 @@ namespace Minecraft_Server_Controller
         {
             string escapedCommand = arg.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
-            return $"--a server:{Port} --p {_Password} \"{escapedCommand}\"";
+            return $"--a {Host}:{Port} --p {_Password} \"{escapedCommand}\"";
         }
 
         public Result<int> Run(string command)
