@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="rcon" CopyToOutputDirectory="Always"/>
 		<None Update="nlog.config" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

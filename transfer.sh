@@ -4,6 +4,7 @@
 IMAGE_NAME="ghcr.io/nano-dna-studios/minecraft-server-controller"
 TAG="latest"
 TARGET_COMPOSE_DIR="~/Services/Minecraft-Server"
+PROJECT_FILE="Minecraft-Server-Controller/Minecraft-Server-Controller.csproj"
 
 echo "--- STEP 1: Deep Cleaning Project ---"
 rm -rf Minecraft-Server-Controller/bin
