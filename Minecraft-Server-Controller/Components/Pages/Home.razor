@@ -185,6 +185,26 @@
 		</div>
 	</div>
 
+	<div class="message-card log-card">
+		<div class="message-header">
+			<h3>Server Logs</h3>
+			<p>Latest server activity and command output.</p>
+		</div>
+
+		<div class="log-body dashboard-log-body">
+			@if (!Manager.ServerLogs.Any())
+			{
+				<div class="log-empty">No logs yet.</div>
+			}
+			else
+			{
+				<textarea class="log-area" contenteditable="false" style="min-height:500px; border:none" readonly="readonly">
+						@Manager.ServerLogs
+				</textarea>
+			}
+		</div>
+	</div>
+
 	<div class="message-card">
 		<div class="message-header">
 			<h3>Server Map</h3>
@@ -205,27 +225,6 @@
 				<button class="send-button action-button action-save" onclick="@(() => GetMap());">
 					Try Map Again
 				</button>
-			}
-		</div>
-	</div>
-
-	<div class="message-card log-card">
-		<div class="message-header">
-			<h3>Server Logs</h3>
-			<p>Latest server activity and command output.</p>
-		</div>
-
-		<div class="log-body dashboard-log-body">
-			@if (!Manager.ServerLogs.Any())
-			{
-				<div class="log-empty">No logs yet.</div>
-			}
-			else
-			{
-				@foreach (string log in Manager.ServerLogs)
-				{
-					<div class="log-line @GetLogColor(log)">@log</div>
-				}
 			}
 		</div>
 	</div>
