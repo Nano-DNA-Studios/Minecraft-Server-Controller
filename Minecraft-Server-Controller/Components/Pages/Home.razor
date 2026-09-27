@@ -205,30 +205,32 @@
 		</div>
 	</div>
 
-	<div class="message-card">
-		<div class="message-header">
-			<h3>Server Map</h3>
-			<p>Has an IFrame of the Server Map for quick view and access</p>
+	@if (Manager.HasDynmap())
+	{
+		<div class="message-card">
+			<div class="message-header">
+				<h3>Server Map</h3>
+				<p>Has an IFrame of the Server Map for quick view and access</p>
+			</div>
+
+			<div class="message-body">
+				@if (MapAvailable)
+				{
+					<iframe src="@Settings.MapBrowserUrl"
+							style="width: 100%; height: 95vh; border: none; border-radius:10px">
+					</iframe>
+				}
+				else
+				{
+					<p>The server map is currently unavailable.</p>
+
+					<button class="send-button action-button action-save" onclick="@(() => GetMap());">
+						Try Map Again
+					</button>
+				}
+			</div>
 		</div>
-
-		<div class="message-body">
-			@if (MapAvailable)
-			{
-				<iframe src="@Settings.MapBrowserUrl"
-						style="width: 100%; height: 95vh; border: none; border-radius:10px">
-				</iframe>
-			}
-			else
-			{
-				<p>The server map is currently unavailable.</p>
-
-				<button class="send-button action-button action-save" onclick="@(() => GetMap());">
-					Try Map Again
-				</button>
-			}
-		</div>
-	</div>
-
+	}
 </div>
 
 @code {
@@ -270,10 +272,12 @@
 
 	private void GetMap()
 	{
+		if (!Manager.HasDynmap())
+			return;
+
 		_logger.Trace("Checking Map Health");
 
 		HttpClient client = HttpClientFactory.CreateClient("Map");
-
 		HttpResponseMessage message = client.GetAsync(Settings.MapHealthUrl, HttpCompletionOption.ResponseHeadersRead).Result;
 
 		MapAvailable = message.IsSuccessStatusCode;
