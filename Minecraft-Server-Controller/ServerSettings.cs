@@ -4,6 +4,8 @@ namespace Minecraft_Server_Controller
 {
     public class ServerSettings
     {
+        public const int MAP_PORT_DEFAULT = 0;
+
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         public string RCONHost { get; private set; }
@@ -38,7 +40,7 @@ namespace Minecraft_Server_Controller
             ServerName = string.Empty;
             Delay = 3000;
             NumOfBackups = 3;
-            MapPort = 8123;
+            MapPort = MAP_PORT_DEFAULT;
             ServerPort = 25565;
             ControllerPort = 8080;
             MapBrowserUrl = string.Empty;

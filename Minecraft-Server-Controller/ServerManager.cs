@@ -29,6 +29,22 @@ namespace Minecraft_Server_Controller
             get => string.Join("\n", LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget")?.Logs ?? Enumerable.Empty<string>());
         }
 
+        public bool HasDynmap()
+        {
+            if (string.IsNullOrEmpty(Settings.MapHealthUrl))
+                return false;
+
+            if (string.IsNullOrEmpty(Settings.MapBrowserUrl))
+                return false;
+
+            if (Settings.MapPort == ServerSettings.MAP_PORT_DEFAULT)
+                return false;
+
+            string dynmapPath = Path.Combine(DATA_DIR, "plugins", "dynmap");
+
+            return Directory.Exists(dynmapPath);
+        }
+
         public ServerManager(ServerStatus status, ServerSettings settings)
         {
             Status = status;
