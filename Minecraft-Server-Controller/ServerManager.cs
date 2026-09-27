@@ -24,9 +24,9 @@ namespace Minecraft_Server_Controller
 
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public IEnumerable<string> ServerLogs
+        public string ServerLogs
         {
-            get { return LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget")?.Logs ?? Enumerable.Empty<string>(); }
+            get => string.Join("\n", LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget")?.Logs ?? Enumerable.Empty<string>());
         }
 
         public ServerManager(ServerStatus status, ServerSettings settings)
