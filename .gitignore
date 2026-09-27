@@ -56,3 +56,4 @@ nunit-*.xml
 .env
 /backup
 /Scripts/transfer.sh
+/AI
