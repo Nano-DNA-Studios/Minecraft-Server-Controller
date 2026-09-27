@@ -193,7 +193,7 @@ namespace Minecraft_Server_Controller
             string[] files = GetBackupFiles();
 
             if (files.Length > Settings.NumOfBackups)
-                DeleteBackup(files[0]);
+                DeleteBackup(files.Last());
         }
 
         public async Task Broadcast(string message, BroadcastColor color)
@@ -297,7 +297,7 @@ namespace Minecraft_Server_Controller
             if (!Directory.Exists(BACKUP_DIR))
                 return new string[0];
 
-            return Directory.GetFiles(BACKUP_DIR, "*.7z");
+            return Directory.GetFiles(BACKUP_DIR, "*.7z").OrderDescending().ToArray();
         }
 
         public void DeleteBackup(string path)
