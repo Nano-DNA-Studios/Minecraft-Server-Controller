@@ -4,6 +4,7 @@
 @inject ServerManager Manager
 @inject ServerStatus Status
 @inject ServerSettings Settings
+@inject NavigationManager Nav
 @inject IHttpClientFactory HttpClientFactory
 @implements IDisposable
 
@@ -126,7 +127,9 @@
 
 					<div class="d-flex flex-row" style="gap:10px">
 						<button class="send-button action-button action-start" @onclick="() => LoadBackup(file)">Load</button>
+						<button class="send-button action-button action-restart" @onclick="() => Download(file)">Download</button>
 						<button class="send-button action-button action-stop" @onclick="() => DeleteBackup(file)">Delete</button>
+						
 					</div>
 				</div>
 			}
@@ -393,5 +396,14 @@
 			return "text-warning";
 		else
 			return string.Empty;
+	}
+
+	private void Download(string filePath)
+	{
+		string downloadURL = $"/api/download?filePath={Uri.EscapeDataString(filePath)}&fileName={Uri.EscapeDataString(Path.GetFileNameWithoutExtension(filePath))}.7z";
+
+		_logger.Info($"Downloading Log File : {filePath}");
+
+		Nav.NavigateTo(downloadURL, forceLoad: true);
 	}
 }
