@@ -129,7 +129,7 @@
 						<button class="send-button action-button action-start" @onclick="() => LoadBackup(file)">Load</button>
 						<button class="send-button action-button action-restart" @onclick="() => Download(file)">Download</button>
 						<button class="send-button action-button action-stop" @onclick="() => DeleteBackup(file)">Delete</button>
-						
+
 					</div>
 				</div>
 			}
@@ -400,6 +400,9 @@
 
 	private void Download(string filePath)
 	{
+		if (!File.Exists(filePath))
+			return;
+
 		string downloadURL = $"/api/download?filePath={Uri.EscapeDataString(filePath)}&fileName={Uri.EscapeDataString(Path.GetFileNameWithoutExtension(filePath))}.7z";
 
 		_logger.Info($"Downloading Log File : {filePath}");
