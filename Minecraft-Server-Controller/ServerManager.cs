@@ -24,9 +24,9 @@ namespace Minecraft_Server_Controller
 
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public string ServerLogs
+        public string[] ServerLogs
         {
-            get => string.Join("\n", LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget")?.Logs ?? Enumerable.Empty<string>());
+            get => LogManager.Configuration?.FindTargetByName<MemoryTarget>("memoryTarget")?.Logs.ToArray() ?? Enumerable.Empty<string>().ToArray();
         }
 
         public bool HasDynmap()
