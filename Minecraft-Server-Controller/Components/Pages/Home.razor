@@ -201,9 +201,12 @@
 			}
 			else
 			{
-				<textarea class="log-area" contenteditable="false" style="min-height:500px; border:none" readonly="readonly">
-						@Manager.ServerLogs
-				</textarea>
+				<div class="log-area">
+					@foreach (string line in Manager.ServerLogs)
+					{
+						<div class="@GetLogColor(line)">@line</div>
+					}
+				</div>
 			}
 		</div>
 	</div>
@@ -389,11 +392,13 @@
 	private string GetLogColor(string log)
 	{
 		@if (log.Contains("[ERROR]"))
-			return "text-danger";
+			return "log-error";
 		else if (log.Contains("[INFO]"))
-			return "text-info";
-		else if (log.Contains("[INFO]"))
-			return "text-warning";
+			return "log-info";
+		else if (log.Contains("[WARNING]"))
+			return "log-warning";
+		else if (log.Contains("[DEBUG]"))
+			return "log-debug";
 		else
 			return string.Empty;
 	}
