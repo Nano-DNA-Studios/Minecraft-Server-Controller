@@ -13,7 +13,7 @@ namespace Minecraft_Server_Controller
         {
             Logger logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
-            var builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             if (!OperatingSystem.IsWindows())
             {
@@ -54,10 +54,12 @@ namespace Minecraft_Server_Controller
                 client.Timeout = TimeSpan.FromSeconds(2);
             });
 
+            builder.Services.AddControllers();
+
             builder.Logging.AddFilter("System.Net.Http.HttpClient.Map.LogicalHandler", Microsoft.Extensions.Logging.LogLevel.None);
             builder.Logging.AddFilter("System.Net.Http.HttpClient.Map.ClientHandler", Microsoft.Extensions.Logging.LogLevel.None);
 
-            var app = builder.Build();
+            WebApplication app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -68,12 +70,10 @@ namespace Minecraft_Server_Controller
             }
 
             app.UseHttpsRedirection();
-
             app.UseStaticFiles();
             app.UseAntiforgery();
-
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+            app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+            app.MapControllers();
 
             try
             {
